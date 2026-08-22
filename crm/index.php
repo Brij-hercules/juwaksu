@@ -103,10 +103,12 @@ try {
     <div class="col-lg-8">
         <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-base font-extrabold text-slate-800">Recent Leads & Inquiries</h3>
+                <h3 class="text-base font-extrabold text-slate-800">Recent Leads &amp; Inquiries</h3>
+                <?php /* DEMO HIDE - View Pipeline link hidden
                 <?php if (has_permission('inquiries', 'view')): ?>
                     <a href="inquiries.php" class="text-xs font-bold text-brand-500 hover:text-brand-gold transition">View Pipeline &rarr;</a>
                 <?php endif; ?>
+                DEMO HIDE */ ?>
             </div>
             
             <?php if (empty($recentInquiries)): ?>
@@ -168,27 +170,13 @@ try {
         </div>
     </div>
     
-    <!-- Right panel: Quick Actions shortcuts -->
+    <!-- [DEMO HIDE] Quick CRM Tools - hidden for client demo
     <div class="col-lg-4">
         <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-6">
-            <h3 class="text-base font-extrabold text-slate-800 mb-4">Quick CRM Tools</h3>
-            <div class="grid grid-cols-2 gap-3 text-center">
-                <?php if (has_permission('properties', 'create')): ?>
-                    <a href="properties.php?action=add" class="p-4 bg-slate-50 rounded-xl hover:bg-brand-50 border border-slate-100 hover:border-brand-gold/30 transition group">
-                        <div class="text-brand-500 font-bold mb-1 text-sm group-hover:scale-105 transition">+ Add</div>
-                        <div class="text-[10px] text-slate-400 font-semibold uppercase">Listing</div>
-                    </a>
-                <?php endif; ?>
-                
-                <?php if (has_permission('categories', 'create')): ?>
-                    <a href="categories.php" class="p-4 bg-slate-50 rounded-xl hover:bg-brand-50 border border-slate-100 hover:border-brand-gold/30 transition group">
-                        <div class="text-brand-500 font-bold mb-1 text-sm group-hover:scale-105 transition">Setup</div>
-                        <div class="text-[10px] text-slate-400 font-semibold uppercase">Category</div>
-                    </a>
-                <?php endif; ?>
-            </div>
+            ...Quick CRM Tools...
         </div>
     </div>
+    -->
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

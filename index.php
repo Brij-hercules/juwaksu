@@ -94,6 +94,8 @@ try {
     </div>
 </section>
 
+<!-- [DEMO HIDE START] Stats Bar -->
+<?php /* DEMO HIDE
 <!-- Stats Bar / Key Highlights -->
 <section class="bg-white py-8 border-b border-slate-100 shadow-sm relative z-20">
     <div class="container">
@@ -117,7 +119,11 @@ try {
         </div>
     </div>
 </section>
+DEMO HIDE */ ?>
+<!-- [DEMO HIDE END] Stats Bar -->
 
+<!-- [DEMO HIDE START] Category Grid -->
+<?php /* DEMO HIDE
 <!-- Category Selection Grid -->
 <section class="py-16 bg-slate-50">
     <div class="container">
@@ -170,6 +176,8 @@ try {
         </div>
     </div>
 </section>
+DEMO HIDE */ ?>
+<!-- [DEMO HIDE END] Category Grid -->
 
 <!-- Featured Listings Section -->
 <section id="featured-listings" class="py-20 bg-white">
@@ -260,6 +268,8 @@ try {
     </div>
 </section>
 
+<!-- [DEMO HIDE START] Booking Form -->
+<?php /* DEMO HIDE
 <!-- Booking & Inquiry Form Section -->
 <section id="book-visit" class="py-20 bg-slate-100 border-t border-slate-200/50">
     <div class="container">
@@ -336,5 +346,7 @@ try {
         </div>
     </div>
 </section>
+DEMO HIDE */ ?>
+<!-- [DEMO HIDE END] Booking Form -->
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
