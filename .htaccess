@@ -1,0 +1,5 @@
+# Configure Default Index Page
+DirectoryIndex index.php
+
+# Optional: Disable directory browsing for security
+Options -Indexes
