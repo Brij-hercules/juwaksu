@@ -35,7 +35,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
         <!-- Properties CRUD (Checked dynamically) -->
         <?php if (has_permission('properties', 'view')): ?>
-            <a href="properties.php" style="display: none;"
+            <a href="properties.php"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'properties.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
