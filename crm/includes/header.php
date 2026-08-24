@@ -33,12 +33,13 @@ if (!$currentUser) {
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f5f7ff',
-                            100: '#ebf0ff',
-                            500: '#1a365d',
-                            600: '#102a43',
-                            gold: '#d4af37',
-                            goldDark: '#aa7c11',
+                            50:  '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            gold: '#2563eb',
+                            goldDark: '#1d4ed8',
                         }
                     },
                     fontFamily: {
@@ -52,9 +53,9 @@ if (!$currentUser) {
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .sidebar-active {
-            background-color: rgba(212, 175, 55, 0.15);
-            color: #d4af37 !important;
-            border-left: 4px solid #d4af37;
+            background-color: rgba(37, 99, 235, 0.15);
+            color: #93c5fd !important;
+            border-left: 4px solid #2563eb;
         }
         /* Custom scrollbar for dashboards */
         ::-webkit-scrollbar {
@@ -87,6 +88,10 @@ if (!$currentUser) {
                     <button class="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg focus:outline-none" type="button" onclick="document.getElementById('crm-sidebar').classList.toggle('-translate-x-full')">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
+                    <!-- Logo in top bar for mobile -->
+                    <a href="../index.php" class="md:hidden">
+                        <img src="../assets/images/logo.png" alt="Logo" style="height:32px;width:auto;object-fit:contain;">
+                    </a>
                     <h2 class="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
                         <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : "CRM Dashboard"; ?>
                     </h2>
@@ -100,7 +105,7 @@ if (!$currentUser) {
                     </div>
                     
                     <!-- Avatar / Initial logo -->
-                    <div class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm border border-brand-gold shadow">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm border border-blue-400 shadow">
                         <?php echo strtoupper(substr($currentUser['username'], 0, 1)); ?>
                     </div>
                 </div>

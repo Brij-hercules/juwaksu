@@ -21,9 +21,9 @@ try {
         <div class="row g-4">
             <!-- Branding & Tagline -->
             <div class="col-lg-4 col-md-6">
-                <h5 class="text-white font-extrabold text-lg mb-4 tracking-wider uppercase">
-                    <span class="text-brand-gold">WAVE</span> PROPERTIES
-                </h5>
+                <div class="mb-4">
+                    <img src="assets/images/logo.png" alt="Prime Hashtag Properties Logo" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+                </div>
                 <p class="text-sm leading-relaxed mb-4">
                     Providing premier freehold residential, commercial, and 8% Kisan Quota allotment plots in Wave City,
                     Ghaziabad. Secure your investment in future-ready developments.
@@ -89,7 +89,7 @@ try {
         <!-- CRM link bottom shortcut -->
         <div class="mt-8 pt-8 border-t border-slate-800/60 text-center text-xs text-slate-600">
             Are you an agent? <a href="crm/login.php"
-                class="text-slate-500 hover:text-brand-gold underline transition">Login to CRM Dashboard</a>
+                class="text-blue-400 hover:text-blue-300 underline transition">Login to CRM Dashboard</a>
         </div>
     </div>
 </footer>

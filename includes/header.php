@@ -45,12 +45,13 @@ try {
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f5f7ff',
-                            100: '#ebf0ff',
-                            500: '#1a365d', // primary blue
-                            600: '#102a43', // darker blue
-                            gold: '#d4af37', // metallic gold
-                            goldDark: '#aa7c11',
+                            50:  '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#2563eb', // vibrant blue
+                            600: '#1d4ed8', // darker blue
+                            700: '#1e40af', // deep blue
+                            gold: '#2563eb', // mapped gold → blue
+                            goldDark: '#1d4ed8',
                         }
                     },
                     fontFamily: {
@@ -100,15 +101,22 @@ try {
 
         /* Glassmorphism utilities */
         .glass-navbar {
-            background: rgba(26, 54, 93, 0.95);
+            background: rgba(29, 78, 216, 0.97);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
 
         /* Premium hover transitions */
         .hover-gold:hover {
-            color: #d4af37 !important;
+            color: #bfdbfe !important;
             transition: all 0.3s ease;
+        }
+
+        /* Logo sizing */
+        .navbar-logo {
+            height: 44px;
+            width: auto;
+            object-fit: contain;
         }
     </style>
 </head>
@@ -120,9 +128,8 @@ try {
         <nav class="navbar navbar-expand-lg navbar-dark py-3">
             <div class="container">
                 <!-- Branding -->
-                <a class="navbar-brand flex items-center gap-2 font-extrabold text-2xl tracking-tight text-white"
-                    href="index.php">
-                    <span class="text-brand-gold">HASHTAG </span>PROPERTIES
+                <a class="navbar-brand flex items-center gap-2" href="index.php">
+                    <img src="assets/images/logo.png" alt="Prime Hashtag Properties Logo" class="navbar-logo" style="height:44px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
                 </a>
 
                 <!-- Toggle Button for mobile -->
@@ -164,14 +171,14 @@ try {
                         <li class="nav-item">
                             <a class="nav-link text-slate-200 hover-gold" href="category.php?slug=kisan-kota-plots">
                                 <span
-                                    class="bg-amber-500/10 text-brand-gold px-2.5 py-1 rounded-full border border-amber-500/30 text-xs font-semibold uppercase tracking-wider">Kisan
+                                    class="bg-blue-500/20 text-blue-100 px-2.5 py-1 rounded-full border border-blue-400/40 text-xs font-semibold uppercase tracking-wider">Kisan
                                     Kota 8%</span>
                             </a>
                         </li>
 
                         <!-- CRM panel link -->
                         <li class="nav-item lg:ms-4">
-                            <a class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldDark text-slate-950 font-bold rounded-full transition duration-300 shadow-lg flex items-center gap-2"
+                            <a class="px-5 py-2.5 bg-white hover:bg-blue-50 text-blue-700 font-bold rounded-full transition duration-300 shadow-lg flex items-center gap-2"
                                 href="crm/login.php">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin='round' stroke-width='2.5'

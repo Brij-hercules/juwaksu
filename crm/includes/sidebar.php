@@ -8,10 +8,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
 <aside id="crm-sidebar"
     class="w-64 bg-slate-900 text-slate-400 flex flex-col h-full border-r border-slate-800 absolute md:relative z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <!-- Sidebar Header Logo -->
-    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800/80 bg-slate-950/40">
-        <a class="flex items-center gap-1.5 font-extrabold text-lg tracking-tight text-white" href="../index.php"
-            target="_blank">
-            <span class="text-brand-gold">WAVE</span>CRM
+    <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800/80 bg-slate-950/40">
+        <a class="flex items-center" href="../index.php" target="_blank">
+            <img src="../assets/images/logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
         </a>
         <button class="md:hidden p-1 rounded hover:bg-slate-800 text-slate-400 focus:outline-none"
             onclick="document.getElementById('crm-sidebar').classList.add('-translate-x-full')">

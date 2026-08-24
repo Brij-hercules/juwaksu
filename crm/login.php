@@ -64,12 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f5f7ff',
-                            100: '#ebf0ff',
-                            500: '#1a365d',
-                            600: '#102a43',
-                            gold: '#d4af37',
-                            goldDark: '#aa7c11',
+                            50:  '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            gold: '#2563eb',
+                            goldDark: '#1d4ed8',
                         }
                     },
                     fontFamily: {
@@ -102,24 +103,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body
-    class="h-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-brand-600 to-indigo-950 overflow-hidden font-sans relative">
+    class="h-full flex items-center justify-center p-4 bg-gradient-to-br from-blue-950 via-blue-700 to-blue-900 overflow-hidden font-sans relative">
 
     <!-- Background lights -->
-    <div class="absolute w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl -top-12 -left-12"></div>
-    <div class="absolute w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -bottom-12 -right-12"></div>
+    <div class="absolute w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -top-12 -left-12"></div>
+    <div class="absolute w-96 h-96 bg-white/5 rounded-full blur-3xl -bottom-12 -right-12"></div>
 
     <div
         class="max-w-5xl w-full bg-slate-900/40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-slate-800/80 flex flex-col md:flex-row relative z-10">
         <!-- Visual Panel -->
         <div
-            class="md:w-1/2 bg-gradient-to-br from-brand-600 to-indigo-950 p-12 text-white flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800/60">
-            <div class="flex items-center gap-2 font-extrabold text-xl tracking-tight text-white">
-                <span class="text-brand-gold">HASHTAG </span>PROPERTIES
+            class="md:w-1/2 bg-gradient-to-br from-blue-800 to-blue-950 p-12 text-white flex flex-col justify-between border-b md:border-b-0 md:border-r border-blue-900/60">
+            <div class="flex items-center">
+                <img src="../assets/images/logo.png" alt="Prime Hashtag Properties Logo" style="height:44px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
             </div>
 
             <div class="my-12 text-center md:text-left">
                 <div
-                    class="inline-block bg-slate-950/20 text-brand-gold px-3.5 py-1.5 rounded-full border border-brand-gold/20 text-xs font-bold uppercase tracking-widest mb-6 float-graphic">
+                    class="inline-block bg-white/10 text-blue-100 px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest mb-6 float-graphic">
                     Enterprise Portal
                 </div>
                 <h2 class="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-4">
@@ -175,14 +176,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <button type="submit"
-                    class="w-full py-3.5 bg-brand-gold hover:bg-brand-goldDark text-slate-950 font-extrabold text-sm rounded-xl transition duration-300 shadow-lg transform hover:-translate-y-0.5">
+                    class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition duration-300 shadow-lg transform hover:-translate-y-0.5">
                     Proceed to CRM
                 </button>
             </form>
 
             <div class="mt-8 text-center text-xs">
                 <a href="../index.php"
-                    class="text-slate-500 hover:text-brand-gold transition duration-200 flex items-center justify-center gap-1">
+                    class="text-slate-400 hover:text-blue-300 transition duration-200 flex items-center justify-center gap-1">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
