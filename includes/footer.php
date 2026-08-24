@@ -16,13 +16,13 @@ try {
 </main>
 
 <!-- Footer -->
-<footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+<footer class="bg-white text-slate-700 py-12 border-t border-slate-200 mt-auto">
     <div class="container">
         <div class="row g-4">
             <!-- Branding & Tagline -->
             <div class="col-lg-4 col-md-6">
                 <div class="mb-4">
-                    <img src="assets/images/logo.png" alt="Prime Hashtag Properties Logo" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+                    <img src="assets/images/logo.png" alt="Prime Hashtag Properties Logo" style="height:48px;width:auto;object-fit:contain;">
                 </div>
                 <p class="text-sm leading-relaxed mb-4">
                     Providing premier freehold residential, commercial, and 8% Kisan Quota allotment plots in Wave City,
@@ -35,11 +35,11 @@ try {
 
             <!-- Categories Quick Links -->
             <div class="col-lg-3 col-md-6">
-                <h5 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Quick Categories</h5>
+                <h5 class="text-slate-900 font-semibold text-sm mb-4 uppercase tracking-wider">Quick Categories</h5>
                 <ul class="list-unstyled space-y-2 text-sm">
                     <?php foreach ($footerCategories as $cat): ?>
                         <li>
-                            <!-- <a href="category.php?slug=<?php echo htmlspecialchars($cat['slug']); ?>" class="hover:text-brand-gold transition duration-200"> -->
+                            <!-- <a href="category.php?slug=<?php echo htmlspecialchars($cat['slug']); ?>" class="hover:text-blue-600 transition duration-200"> -->
                             <?php echo htmlspecialchars($cat['name']); ?>
                             <!-- </a> -->
                         </li>
@@ -49,7 +49,7 @@ try {
 
             <!-- Contact & Visit Info -->
             <div class="col-lg-3 col-md-6">
-                <h5 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Contact & Site Office</h5>
+                <h5 class="text-slate-900 font-semibold text-sm mb-4 uppercase tracking-wider">Contact & Site Office</h5>
                 <p class="text-sm mb-2 leading-relaxed">
                     <strong>Wave City NH-24</strong><br>
                     India
@@ -62,7 +62,7 @@ try {
 
             <!-- Marketing Meta Info -->
             <div class="col-lg-2 col-md-6">
-                <h5 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Useful Information</h5>
+                <h5 class="text-slate-900 font-semibold text-sm mb-4 uppercase tracking-wider">Useful Information</h5>
                 <ul class="list-unstyled space-y-2 text-sm">
                     <li>
                         <span
@@ -87,9 +87,9 @@ try {
         </div>
 
         <!-- CRM link bottom shortcut -->
-        <div class="mt-8 pt-8 border-t border-slate-800/60 text-center text-xs text-slate-600">
+        <div class="mt-8 pt-8 border-t border-slate-200 text-center text-xs text-slate-500">
             Are you an agent? <a href="crm/login.php"
-                class="text-blue-400 hover:text-blue-300 underline transition">Login to CRM Dashboard</a>
+                class="text-blue-600 hover:text-blue-800 underline transition">Login to CRM Dashboard</a>
         </div>
     </div>
 </footer>

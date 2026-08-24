@@ -22,10 +22,10 @@ try {
 
 <!-- Hero Banner Section -->
 <section
-    class="relative bg-gradient-to-br from-brand-600 via-brand-500 to-indigo-900 text-white py-24 md:py-32 overflow-hidden">
+    class="relative bg-white text-slate-800 py-24 md:py-32 overflow-hidden border-b border-slate-100">
     <!-- Overlay/Background elements -->
     <div
-        class="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:16px_16px]">
+        class="absolute inset-0 opacity-40 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:16px_16px]">
     </div>
 
     <div class="container relative z-10">
@@ -33,8 +33,8 @@ try {
             <!-- Left Column: Copy -->
             <div class="col-lg-7 text-left lg:text-left animate-fade-in-up">
                 <span
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-brand-gold border border-amber-500/30 text-xs font-bold uppercase tracking-widest mb-4">
-                    <svg class="w-3 h-3 text-brand-gold animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold uppercase tracking-widest mb-4">
+                    <svg class="w-3 h-3 text-blue-600 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
                             clip-rule="evenodd"></path>
@@ -42,24 +42,24 @@ try {
                     Adjacent to Wave City, Ghaziabad
                 </span>
 
-                <h1 class="text-4xl md:text-6xl font-black tracking-tight leading-none mb-4">
+                <h1 class="text-4xl md:text-6xl font-black tracking-tight leading-none mb-4 text-slate-900">
                     Own Your Land. <br>
-                    <span class="text-brand-gold">Build Your Future.</span>
+                    <span class="text-blue-600">Build Your Future.</span>
                 </h1>
 
-                <p class="text-slate-300 text-lg md:text-xl font-light mb-8 leading-relaxed mx-auto lg:mx-0">
-                    Premium freehold residential plots and limited <strong class="text-white font-semibold">8% Kisaan
+                <p class="text-slate-600 text-lg md:text-xl font-light mb-8 leading-relaxed mx-auto lg:mx-0">
+                    Premium freehold residential plots and limited <strong class="text-slate-800 font-semibold">8% Kisaan
                         Quota</strong> allotments in Wave City's developed phase. Possession handover,
                     construction-ready.
                 </p>
 
                 <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
                     <a href="#featured-listings"
-                        class="px-8 py-3.5 bg-brand-gold hover:bg-brand-goldDark text-slate-950 font-bold rounded-xl transition duration-300 shadow-xl transform hover:-translate-y-1">
+                        class="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition duration-300 shadow-xl transform hover:-translate-y-1">
                         Explore Plots
                     </a>
                     <a href="#book-visit"
-                        class="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition duration-300 border border-white/20 backdrop-blur-md">
+                        class="px-8 py-3.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl transition duration-300 border border-slate-200 shadow-sm">
                         Book Free Site Visit
                     </a>
                 </div>
@@ -68,37 +68,37 @@ try {
             <!-- Right Column: Visual highlights card -->
             <div class="col-lg-5 animate-fade-in-up delay-200">
                 <div
-                    class="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 p-6 md:p-8 rounded-3xl shadow-2xl relative">
+                    class="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-xl relative">
                     <div
                         class="absolute -top-4 -right-4 bg-rose-600 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-xl rotate-12 shadow-lg">
                         Best Rates!
                     </div>
 
-                    <h3 class="text-2xl font-extrabold text-white mb-4">Wave City Extension</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-900 mb-4">Wave City Extension</h3>
 
                     <div class="space-y-4">
-                        <div class="flex items-baseline gap-2 pb-3 border-b border-slate-800">
-                            <span class="text-slate-400 text-sm">Starting Price:</span>
-                            <span class="text-3xl font-black text-brand-gold">₹32,990</span>
-                            <span class="text-slate-400 text-xs">/ Sq. Yard</span>
+                        <div class="flex items-baseline gap-2 pb-3 border-b border-slate-100">
+                            <span class="text-slate-500 text-sm">Starting Price:</span>
+                            <span class="text-3xl font-black text-blue-600">₹32,990</span>
+                            <span class="text-slate-500 text-xs">/ Sq. Yard</span>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3 text-sm">
-                            <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <div class="text-slate-500 text-xs">Quota</div>
-                                <div class="font-semibold text-white">8% Kisaan Plots</div>
+                                <div class="font-semibold text-slate-800">8% Kisaan Plots</div>
                             </div>
-                            <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <div class="text-slate-500 text-xs">Status</div>
-                                <div class="font-semibold text-emerald-400">Ready to Construct</div>
+                                <div class="font-semibold text-emerald-600">Ready to Construct</div>
                             </div>
-                            <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <div class="text-slate-500 text-xs">Ownership</div>
-                                <div class="font-semibold text-white">100% Freehold</div>
+                                <div class="font-semibold text-slate-800">100% Freehold</div>
                             </div>
-                            <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <div class="text-slate-500 text-xs">Development</div>
-                                <div class="font-semibold text-white">Gated & Wide Roads</div>
+                                <div class="font-semibold text-slate-800">Gated & Wide Roads</div>
                             </div>
                         </div>
                     </div>

@@ -101,14 +101,14 @@ try {
 
         /* Glassmorphism utilities */
         .glass-navbar {
-            background: rgba(29, 78, 216, 0.97);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
 
         /* Premium hover transitions */
         .hover-gold:hover {
-            color: #bfdbfe !important;
+            color: #2563eb !important;
             transition: all 0.3s ease;
         }
 
@@ -124,12 +124,12 @@ try {
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
     <!-- Header / Navbar -->
-    <header class="sticky top-0 z-50 glass-navbar shadow-lg border-b border-blue-900/50">
-        <nav class="navbar navbar-expand-lg navbar-dark py-3">
+    <header class="sticky top-0 z-50 glass-navbar shadow-sm border-b border-slate-200">
+        <nav class="navbar navbar-expand-lg navbar-light py-3">
             <div class="container">
                 <!-- Branding -->
                 <a class="navbar-brand flex items-center gap-2" href="index.php">
-                    <img src="assets/images/logo.png" alt="Prime Hashtag Properties Logo" class="navbar-logo" style="height:44px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+                    <img src="assets/images/logo.png" alt="Prime Hashtag Properties Logo" class="navbar-logo">
                 </a>
 
                 <!-- Toggle Button for mobile -->
@@ -144,13 +144,13 @@ try {
                     <ul
                         class="navbar-nav ms-auto mb-2 mb-lg-0 items-center gap-2 lg:gap-4 mt-3 lg:mt-0 text-sm font-medium">
                         <li class="nav-item">
-                            <a class="nav-link text-slate-200 hover-gold <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active text-brand-gold' : ''; ?>"
+                            <a class="nav-link text-slate-700 hover-gold <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active text-blue-600' : ''; ?>"
                                 href="index.php">Home</a>
                         </li>
 
                         <!-- Categories Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-slate-200 hover-gold" href="#" id="navbarDropdown"
+                            <a class="nav-link dropdown-toggle text-slate-700 hover-gold" href="#" id="navbarDropdown"
                                 role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Property Categories
                             </a>
@@ -169,16 +169,16 @@ try {
 
                         <!-- Static Categories Directly visible for quick access -->
                         <li class="nav-item">
-                            <a class="nav-link text-slate-200 hover-gold" href="category.php?slug=kisan-kota-plots">
+                            <a class="nav-link text-slate-700 hover-gold" href="category.php?slug=kisan-kota-plots">
                                 <span
-                                    class="bg-blue-500/20 text-blue-100 px-2.5 py-1 rounded-full border border-blue-400/40 text-xs font-semibold uppercase tracking-wider">Kisan
+                                    class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full border border-blue-200 text-xs font-semibold uppercase tracking-wider">Kisan
                                     Kota 8%</span>
                             </a>
                         </li>
 
                         <!-- CRM panel link -->
                         <li class="nav-item lg:ms-4">
-                            <a class="px-5 py-2.5 bg-white hover:bg-blue-50 text-blue-700 font-bold rounded-full transition duration-300 shadow-lg flex items-center gap-2"
+                            <a class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full transition duration-300 shadow flex items-center gap-2"
                                 href="crm/login.php">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin='round' stroke-width='2.5'

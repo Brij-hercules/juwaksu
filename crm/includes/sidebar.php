@@ -6,11 +6,11 @@ $activePage = basename($_SERVER['PHP_SELF']);
 ?>
 <!-- CRM Sidebar Navigation Panel -->
 <aside id="crm-sidebar"
-    class="w-64 bg-slate-900 text-slate-400 flex flex-col h-full border-r border-slate-800 absolute md:relative z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+    class="w-64 bg-white text-slate-600 flex flex-col h-full border-r border-slate-200 absolute md:relative z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <!-- Sidebar Header Logo -->
-    <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800/80 bg-slate-950/40">
+    <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200 bg-slate-50">
         <a class="flex items-center" href="../index.php" target="_blank">
-            <img src="../assets/images/logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+            <img src="../assets/images/logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;">
         </a>
         <button class="md:hidden p-1 rounded hover:bg-slate-800 text-slate-400 focus:outline-none"
             onclick="document.getElementById('crm-sidebar').classList.add('-translate-x-full')">
@@ -24,7 +24,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
     <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
         <!-- Dashboard Link (Always Visible to Logged-in team members) -->
         <a href="index.php"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'index.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'index.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z">
@@ -36,7 +36,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <!-- Properties CRUD (Checked dynamically) -->
         <?php if (has_permission('properties', 'view')): ?>
             <a href="properties.php" style="display: none;"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'properties.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'properties.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
@@ -49,7 +49,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <!-- Categories CRUD (Checked dynamically) -->
         <?php if (has_permission('categories', 'view')): ?>
             <a href="categories.php" style="display: none;"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'categories.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'categories.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
@@ -62,7 +62,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <!-- Inquiries Pipeline (Checked dynamically) -->
         <?php if (has_permission('inquiries', 'view')): ?>
             <a href="inquiries.php" style="display: none;"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'inquiries.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'inquiries.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
@@ -75,7 +75,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <!-- Meta Ads campaigns (Checked dynamically) -->
         <?php if (has_permission('meta_ads', 'view')): ?>
             <a href="meta-ads.php" style="display: none;"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'meta-ads.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'meta-ads.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -87,7 +87,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <!-- Custom Roles permissions (Checked dynamically) -->
         <?php if (has_permission('roles', 'view')): ?>
             <a href="roles.php" style="display: none;"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'roles.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'roles.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
@@ -100,7 +100,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <!-- User list managers (Checked dynamically) -->
         <?php if (has_permission('users', 'view')): ?>
             <a href="users.php" style="display: none;"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition text-sm font-semibold <?php echo $activePage == 'users.php' ? 'sidebar-active text-white' : 'text-slate-400'; ?>">
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'users.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
@@ -112,9 +112,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
     </nav>
 
     <!-- Sidebar Footer Actions -->
-    <div class="p-4 border-t border-slate-800 bg-slate-950/40 text-xs">
+    <div class="p-4 border-t border-slate-200 bg-slate-50 text-xs">
         <a href="logout.php"
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition font-semibold">
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition font-semibold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">

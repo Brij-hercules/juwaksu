@@ -103,31 +103,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body
-    class="h-full flex items-center justify-center p-4 bg-gradient-to-br from-blue-950 via-blue-700 to-blue-900 overflow-hidden font-sans relative">
+    class="h-full flex items-center justify-center p-4 bg-slate-50 overflow-hidden font-sans relative">
 
     <!-- Background lights -->
-    <div class="absolute w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -top-12 -left-12"></div>
-    <div class="absolute w-96 h-96 bg-white/5 rounded-full blur-3xl -bottom-12 -right-12"></div>
+    <div class="absolute w-96 h-96 bg-blue-100 rounded-full blur-3xl -top-12 -left-12"></div>
+    <div class="absolute w-96 h-96 bg-slate-200 rounded-full blur-3xl -bottom-12 -right-12"></div>
 
     <div
-        class="max-w-5xl w-full bg-slate-900/40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-slate-800/80 flex flex-col md:flex-row relative z-10">
+        class="max-w-5xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col md:flex-row relative z-10">
         <!-- Visual Panel -->
         <div
-            class="md:w-1/2 bg-gradient-to-br from-blue-800 to-blue-950 p-12 text-white flex flex-col justify-between border-b md:border-b-0 md:border-r border-blue-900/60">
+            class="md:w-1/2 bg-blue-50 p-12 text-slate-800 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-200">
             <div class="flex items-center">
-                <img src="../assets/images/logo.png" alt="Prime Hashtag Properties Logo" style="height:44px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+                <img src="../assets/images/logo.png" alt="Prime Hashtag Properties Logo" style="height:44px;width:auto;object-fit:contain;">
             </div>
 
             <div class="my-12 text-center md:text-left">
                 <div
-                    class="inline-block bg-white/10 text-blue-100 px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest mb-6 float-graphic">
+                    class="inline-block bg-white text-blue-600 px-3.5 py-1.5 rounded-full border border-blue-200 text-xs font-bold uppercase tracking-widest mb-6 float-graphic shadow-sm">
                     Enterprise Portal
                 </div>
-                <h2 class="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-4">
+                <h2 class="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-4 text-slate-900">
                     Manage leads & <br>
                     Campaign data.
                 </h2>
-                <p class="text-slate-400 font-light text-sm leading-relaxed max-w-sm">
+                <p class="text-slate-600 font-light text-sm leading-relaxed max-w-sm">
                     Access roles, track dynamic property sales pipeline, review inquiries, and monitor Meta marketing
                     ads ROI.
                 </p>
@@ -139,8 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <!-- Form Panel -->
-        <div class="md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-slate-950/40">
-            <h1 class="text-2xl font-extrabold text-white mb-2">Agent Login</h1>
+        <div class="md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-white">
+            <h1 class="text-2xl font-extrabold text-slate-900 mb-2">Agent Login</h1>
             <p class="text-slate-500 text-xs mb-8">Enter your registered workspace credentials to proceed.</p>
 
             <?php if (!empty($error)): ?>
@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="username"
                         class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Username</label>
                     <input type="text" name="username" id="username" required
-                        class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all placeholder-slate-700"
+                        class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400"
                         placeholder="e.g. admin">
                 </div>
 
@@ -168,10 +168,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="flex justify-between items-baseline mb-2">
                         <label for="password"
                             class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-                        <span class="text-[10px] text-slate-600">admin123 / sales123</span>
+                        <span class="text-[10px] text-slate-400">admin123 / sales123</span>
                     </div>
                     <input type="password" name="password" id="password" required
-                        class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all placeholder-slate-700"
+                        class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400"
                         placeholder="••••••••">
                 </div>
 
