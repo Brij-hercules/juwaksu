@@ -33,14 +33,18 @@ $activePage = basename($_SERVER['PHP_SELF']);
             Dashboard
         </a>
         <!-- New Links -->
-        <a href="allotment-types.php"
+        <a href="allotment-types.php" style="display: none;"
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'allotment-types.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
             Allotment Types
         </a>
-        <a href="analytics.php"
+        <a href="analytics.php" style="display: none;"
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'analytics.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z"/></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z" />
+            </svg>
             Analytics
         </a>
 
