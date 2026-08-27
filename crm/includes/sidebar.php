@@ -110,15 +110,57 @@ $activePage = basename($_SERVER['PHP_SELF']);
             </a>
         <?php endif; ?>
 
-        <!-- Excel Sheet Import (Checked dynamically) -->
-        <?php if (has_permission('inquiries', 'create')): ?>
-            <a href="excel-import.php" 
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'excel-import.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Excel Sheet Import Accordion (Checked dynamically) -->
+        <?php
+        $excelPages = ['excel-import.php','excel-leads.php'];
+        $excelActive = in_array($activePage, $excelPages);
+        ?>
+        <?php if (has_permission('inquiries', 'create') || has_permission('inquiries', 'view')): ?>
+            <!-- Parent toggle button -->
+            <button onclick="toggleExcelMenu()" id="excelMenuToggle"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $excelActive ? 'sidebar-active' : 'text-slate-600'; ?>">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                Excel Sheet Import
-            </a>
+                <span class="flex-1 text-left">Excel Sheet Import</span>
+                <svg id="excelChevron" class="w-4 h-4 flex-shrink-0 transition-transform duration-200 <?php echo $excelActive ? 'rotate-180' : ''; ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Submenu -->
+            <div id="excelSubmenu" class="<?php echo $excelActive ? '' : 'hidden'; ?> pl-4 space-y-0.5 mt-0.5">
+                <!-- Import File -->
+                <?php if (has_permission('inquiries', 'create')): ?>
+                <a href="excel-import.php"
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-xs font-semibold <?php echo $activePage == 'excel-import.php' ? 'sidebar-active' : 'text-slate-500'; ?>">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    Import File
+                </a>
+                <?php endif; ?>
+
+                <!-- Imported Leads List -->
+                <?php if (has_permission('inquiries', 'view')): ?>
+                <a href="excel-leads.php"
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-xs font-semibold <?php echo $activePage == 'excel-leads.php' ? 'sidebar-active' : 'text-slate-500'; ?>">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Imported Leads
+                </a>
+                <?php endif; ?>
+            </div>
+
+            <script>
+            function toggleExcelMenu() {
+                const menu    = document.getElementById('excelSubmenu');
+                const chevron = document.getElementById('excelChevron');
+                menu.classList.toggle('hidden');
+                chevron.classList.toggle('rotate-180');
+            }
+            </script>
         <?php endif; ?>
 
         <!-- Custom Roles permissions (Checked dynamically) -->
