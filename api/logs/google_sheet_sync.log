@@ -1,0 +1,6 @@
+[2026-08-27 14:29:57] [UNAUTHORIZED] Missing X-API-Key header.
+[2026-08-27 14:30:01] [UNAUTHORIZED] Invalid X-API-Key provided.
+[2026-08-27 14:30:04] [VALIDATION_ERROR] Malformed JSON payload received.
+[2026-08-27 14:30:17] [DUPLICATE] Lead ID meta_lead_9999 | Duplicate phone matches existing lead ID 2 (External: N/A)
+[2026-08-27 14:30:35] [SUCCESS] Lead ID meta_lead_9999 | Successfully inserted inquiry ID 4 | Name: John Doe Test | Phone: ********5555
+[2026-08-27 14:30:58] [DUPLICATE] Lead ID meta_lead_9999 | Lead already exists by external ID
