@@ -22,7 +22,22 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
     <!-- Sidebar Navigation Links -->
     <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-        <!-- Dashboard Link (Always Visible to Logged-in team members) -->
+        
+        <?php $isSalesEmployee = ($currentUser['role_name'] === 'Sales Employee'); ?>
+        
+        <?php if ($isSalesEmployee): ?>
+            <!-- SALES EMPLOYEE MENU -->
+            <a href="index.php"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'index.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                Leads
+            </a>
+            
+        <?php else: ?>
+            <!-- ADMIN MENU -->
+            <!-- Dashboard Link -->
         <a href="index.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'index.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,6 +211,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 Team Management
             </a>
         <?php endif; ?>
+        <?php endif; // End Admin Menu ?>
     </nav>
 
     <!-- Sidebar Footer Actions -->
