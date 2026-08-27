@@ -110,6 +110,17 @@ $activePage = basename($_SERVER['PHP_SELF']);
             </a>
         <?php endif; ?>
 
+        <!-- Excel Sheet Import (Checked dynamically) -->
+        <?php if (has_permission('inquiries', 'create')): ?>
+            <a href="excel-import.php" 
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo $activePage == 'excel-import.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Excel Sheet Import
+            </a>
+        <?php endif; ?>
+
         <!-- Custom Roles permissions (Checked dynamically) -->
         <?php if (has_permission('roles', 'view')): ?>
             <a href="roles.php" style="display: none;"
