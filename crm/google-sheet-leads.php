@@ -87,6 +87,11 @@ if (!empty($filterEnd)) {
     $params[] = $filterEnd;
 }
 
+$isSalesEmployee = ($currentUser['role_name'] === 'Sales Employee');
+if ($isSalesEmployee) {
+    $queryStr .= " AND i.assigned_to = " . intval($currentUser['id']);
+}
+
 $queryStr .= " ORDER BY i.id DESC";
 
 try {
@@ -111,10 +116,15 @@ try {
     ")->fetchAll();
 
     // Stats
-    $statTotal = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE meta_lead_id IS NOT NULL")->fetchColumn();
-    $statNew = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE meta_lead_id IS NOT NULL AND status = 'new'")->fetchColumn();
-    $statActive = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE meta_lead_id IS NOT NULL AND status IN ('contacting', 'qualified')")->fetchColumn();
-    $statClosed = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE meta_lead_id IS NOT NULL AND status = 'closed'")->fetchColumn();
+    $statWhere = "WHERE meta_lead_id IS NOT NULL";
+    if ($isSalesEmployee) {
+        $statWhere .= " AND assigned_to = " . intval($currentUser['id']);
+    }
+
+    $statTotal = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere")->fetchColumn();
+    $statNew = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere AND status = 'new'")->fetchColumn();
+    $statActive = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere AND status IN ('contacting', 'qualified')")->fetchColumn();
+    $statClosed = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere AND status = 'closed'")->fetchColumn();
 
 } catch (\Exception $e) {
     $leads = [];
@@ -331,19 +341,18 @@ if (file_exists($logFilePath)) {
                                     </td>
                                     
                                     <!-- Action -->
-                                    <td class="py-3 text-end">
-                                        <form action="google-sheet-leads.php?<?php echo $_SERVER['QUERY_STRING'] ?? ''; ?>" method="POST" class="inline-flex gap-1">
-                                            <input type="hidden" name="inquiry_id" value="<?php echo $lead['id']; ?>">
+                                    <!-- Update Status -->
+                                    <td class="py-3 text-end flex flex-col gap-1 items-end">
+                                        <form action="google-sheet-leads.php?<?= $_SERVER['QUERY_STRING'] ?? '' ?>" method="POST" class="inline-flex">
+                                            <input type="hidden" name="inquiry_id" value="<?= $lead['id'] ?>">
                                             <input type="hidden" name="update_status" value="1">
-                                            
                                             <select name="status" onchange="this.form.submit()" class="px-2 py-1 bg-slate-50 border border-slate-200 text-xs rounded font-medium focus:outline-none">
-                                                <option value="new" <?php echo $lead['status'] === 'new' ? 'selected' : ''; ?>>New</option>
-                                                <option value="contacting" <?php echo $lead['status'] === 'contacting' ? 'selected' : ''; ?>>Contact</option>
-                                                <option value="qualified" <?php echo $lead['status'] === 'qualified' ? 'selected' : ''; ?>>Qualify</option>
-                                                <option value="lost" <?php echo $lead['status'] === 'lost' ? 'selected' : ''; ?>>Lost</option>
-                                                <option value="closed" <?php echo $lead['status'] === 'closed' ? 'selected' : ''; ?>>Closed</option>
+                                                <?php foreach (['new'=>'New','contacting'=>'Contact','qualified'=>'Qualify','lost'=>'Lost','closed'=>'Closed'] as $v=>$l): ?>
+                                                    <option value="<?= $v ?>" <?= $lead['status']===$v?'selected':'' ?>><?= $l ?></option>
+                                                <?php endforeach; ?>
                                             </select>
                                         </form>
+                                        <a href="lead-details.php?id=<?= $lead['id'] ?>" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-500 hover:text-white text-brand-600 rounded text-[10px] font-bold transition">View Details →</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

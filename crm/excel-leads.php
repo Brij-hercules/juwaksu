@@ -67,8 +67,14 @@ if ($filterSearch)   {
 $query = "SELECT i.*, u.username as agent_name 
           FROM inquiries i 
           LEFT JOIN users u ON i.assigned_to = u.id 
-          $where 
-          ORDER BY i.id DESC";
+          $where";
+
+$isSalesEmployee = ($currentUser['role_name'] === 'Sales Employee');
+if ($isSalesEmployee) {
+    $query .= " AND i.assigned_to = " . intval($currentUser['id']);
+}
+
+$query .= " ORDER BY i.id DESC";
 
 try {
     $stmt = $pdo->prepare($query);
@@ -88,10 +94,15 @@ try {
     ")->fetchAll();
 
     // Stats (all meta leads)
-    $stTotal  = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE source='meta_ads'")->fetchColumn();
-    $stNew    = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE source='meta_ads' AND status='new'")->fetchColumn();
-    $stActive = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE source='meta_ads' AND status IN ('contacting','qualified')")->fetchColumn();
-    $stClosed = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE source='meta_ads' AND status='closed'")->fetchColumn();
+    $statWhere = "WHERE source='meta_ads'";
+    if ($isSalesEmployee) {
+        $statWhere .= " AND assigned_to = " . intval($currentUser['id']);
+    }
+
+    $stTotal  = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere")->fetchColumn();
+    $stNew    = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere AND status='new'")->fetchColumn();
+    $stActive = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere AND status IN ('contacting','qualified')")->fetchColumn();
+    $stClosed = $pdo->query("SELECT COUNT(*) FROM inquiries $statWhere AND status='closed'")->fetchColumn();
 
 } catch (\Exception $e) {
     $leads = $campaignsList = $agents = [];
@@ -308,7 +319,7 @@ try {
                         </td>
 
                         <!-- Update Status -->
-                        <td class="py-3 text-end">
+                        <td class="py-3 text-end flex flex-col gap-1 items-end">
                             <form action="excel-leads.php?<?= $_SERVER['QUERY_STRING'] ?? '' ?>" method="POST" class="inline-flex">
                                 <input type="hidden" name="inquiry_id" value="<?= $lead['id'] ?>">
                                 <input type="hidden" name="update_status" value="1">
@@ -319,6 +330,7 @@ try {
                                     <?php endforeach; ?>
                                 </select>
                             </form>
+                            <a href="lead-details.php?id=<?= $lead['id'] ?>" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-500 hover:text-white text-brand-600 rounded text-[10px] font-bold transition">View Details →</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>

@@ -59,6 +59,11 @@ $queryStr = "
 ";
 $params = [];
 
+$isSalesEmployee = ($currentUser['role_name'] === 'Sales Employee');
+if ($isSalesEmployee) {
+    $queryStr .= " AND i.assigned_to = " . intval($currentUser['id']);
+}
+
 if (!empty($filterStatus)) {
     $queryStr .= " AND i.status = ?";
     $params[] = $filterStatus;
@@ -238,7 +243,7 @@ try {
                             </td>
                             
                             <!-- Update Status actions -->
-                            <td class="py-3 text-end">
+                            <td class="py-3 text-end flex flex-col gap-1 items-end">
                                 <form action="inquiries.php?<?php echo $_SERVER['QUERY_STRING'] ?? ''; ?>" method="POST" class="inline-flex gap-1">
                                     <input type="hidden" name="inquiry_id" value="<?php echo $inq['id']; ?>">
                                     <input type="hidden" name="update_status" value="1">
@@ -251,6 +256,7 @@ try {
                                         <option value="closed" <?php echo $inq['status'] === 'closed' ? 'selected' : ''; ?>>Closed</option>
                                     </select>
                                 </form>
+                                <a href="lead-details.php?id=<?= $inq['id'] ?>" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-500 hover:text-white text-brand-600 rounded text-[10px] font-bold transition">View Details →</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
