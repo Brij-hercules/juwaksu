@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS lead_notes (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    inquiry_id INT(11) NOT NULL,
+    user_id INT(11) NOT NULL,
+    note_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (inquiry_id) REFERENCES inquiries(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
