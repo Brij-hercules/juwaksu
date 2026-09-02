@@ -82,16 +82,26 @@ function syncNewLeads() {
   
   Logger.log(`Scanning ${dataValues.length} rows for sync...`);
   
+  // Prepare an array to hold our updates for the sync status columns
+  // We will write these back all at once at the end to save execution time
+  const statusUpdates = [];
+  
   // 3. Process each row
   for (let i = 0; i < dataValues.length; i++) {
     const rowValues = dataValues[i];
     const currentRowNum = i + 2; // Rows are 1-indexed, starting from Row 2
     
     // Read status cell (0-indexed array, so idx is colIdx - 1)
-    const currentSyncStatus = rowValues[syncStatusColIdx - 1].toString().trim().toLowerCase();
+    const currentSyncStatus = rowValues[syncStatusColIdx - 1] ? rowValues[syncStatusColIdx - 1].toString().trim().toLowerCase() : "";
     
     // Skip if already successfully synced or marked duplicate
     if (currentSyncStatus === "synced" || currentSyncStatus === "duplicate") {
+      // Keep existing values in the update array to not overwrite with blank
+      statusUpdates.push([
+        rowValues[syncStatusColIdx - 1],
+        rowValues[syncMsgColIdx - 1],
+        rowValues[syncTimeColIdx - 1]
+      ]);
       continue;
     }
     
@@ -117,9 +127,7 @@ function syncNewLeads() {
     // Double check: do not send if ID or Phone is empty
     if (!leadPayload.id || !leadPayload.phone_number) {
       Logger.log(`Skipping Row ${currentRowNum}: Missing ID or Phone Number.`);
-      sheet.getRange(currentRowNum, syncStatusColIdx).setValue("failed");
-      sheet.getRange(currentRowNum, syncMsgColIdx).setValue("Missing ID or Phone Number");
-      sheet.getRange(currentRowNum, syncTimeColIdx).setValue(new Date());
+      statusUpdates.push(["failed", "Missing ID or Phone Number", new Date()]);
       continue;
     }
     
@@ -128,17 +136,18 @@ function syncNewLeads() {
     // 4. Send POST request to PHP API
     const response = sendLeadToAPI(leadPayload);
     
-    // 5. Update row columns based on API response
-    sheet.getRange(currentRowNum, syncStatusColIdx).setValue(response.status);
-    sheet.getRange(currentRowNum, syncMsgColIdx).setValue(response.message);
-    sheet.getRange(currentRowNum, syncTimeColIdx).setValue(new Date());
-    
-    // SpreadsheetApp flush to update in real-time
-    SpreadsheetApp.flush();
-    
-    // Small sleep to be respectful of rate limits
-    Utilities.sleep(200);
+    // Push the result to our updates array
+    statusUpdates.push([response.status, response.message, new Date()]);
   }
+  
+  // 5. Write all status updates back to the sheet in one batch operation!
+  // This is MUCH faster than writing cell by cell
+  if (statusUpdates.length > 0) {
+    sheet.getRange(2, syncStatusColIdx, statusUpdates.length, 3).setValues(statusUpdates);
+    SpreadsheetApp.flush();
+  }
+  
+  Logger.log("Sync complete!");
 }
 
 /**
