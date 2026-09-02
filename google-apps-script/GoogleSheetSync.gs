@@ -20,7 +20,7 @@ const CONFIG = {
   API_URL: "https://primehashtag.com/api/google-sheet-lead.php", 
   
   // Replace with your actual API Key generated in your CRM setting
-  API_KEY: "7fa2488fff8a436b091c0ee1276be8a0" 
+  API_KEY: "d2ef90a01b4f3dbc16d2d3ba962d75a9" 
 };
 
 /**
