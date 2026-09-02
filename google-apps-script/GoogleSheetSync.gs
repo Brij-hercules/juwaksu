@@ -138,6 +138,10 @@ function syncNewLeads() {
     
     // Push the result to our updates array
     statusUpdates.push([response.status, response.message, new Date()]);
+    
+    // Crucial: Add a small delay so we don't overwhelm the shared hosting database with 300 requests instantly.
+    // The previous batch-update fix makes the script fast enough that this sleep won't cause a timeout.
+    Utilities.sleep(250);
   }
   
   // 5. Write all status updates back to the sheet in one batch operation!
@@ -174,15 +178,17 @@ function sendLeadToAPI(payload) {
     try {
       parsedResponse = JSON.parse(responseBody);
     } catch (e) {
-      parsedResponse = { message: "Unknown server response" };
+      // If parsing fails, capture the raw HTML/text so we can see the actual PHP error!
+      const rawText = responseBody.replace(/(<([^>]+)>)/gi, "").substring(0, 60).trim();
+      parsedResponse = { message: "Invalid JSON: " + rawText };
     }
     
-    if (responseCode === 201) {
+    if (responseCode === 201 || (responseCode === 200 && parsedResponse.success)) {
       return {
         status: "synced",
         message: parsedResponse.message || "Synced successfully"
       };
-    } else if (responseCode === 409) {
+    } else if (responseCode === 409 || parsedResponse.duplicate) {
       return {
         status: "duplicate",
         message: parsedResponse.message || "Lead already exists"
