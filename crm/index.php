@@ -1,296 +1,271 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+// crm/index.php
+$pageTitle = "CRM Overview";
+require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../config/db.php';
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prime Hashtag — Under Maintenance</title>
-    <meta name="robots" content="noindex">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+$isSalesEmployee = ($currentUser['role_name'] === 'Sales Employee');
+$userId = $currentUser['id'];
 
-        .ph-reset,
-        .ph-reset * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+// Default variables for both roles
+$recentInquiries = [];
 
-        .ph-page {
-            min-height: 100vh;
-            background: #1E1B2E;
-            background-image:
-                radial-gradient(circle at 15% 20%, rgba(244, 169, 58, 0.08), transparent 40%),
-                radial-gradient(circle at 85% 80%, rgba(138, 132, 166, 0.10), transparent 45%);
-            color: #F5F1EA;
-            font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6vh 24px;
-        }
+try {
+    if ($isSalesEmployee) {
+        // --- SALES EMPLOYEE STATS ---
+        $statTotal = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ?");
+        $statTotal->execute([$userId]);
+        $statTotalLeads = $statTotal->fetchColumn();
 
-        .ph-card {
-            width: 100%;
-            max-width: 620px;
-            text-align: center;
-        }
+        $statConfirm = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status = 'closed'");
+        $statConfirm->execute([$userId]);
+        $statConfirmLeads = $statConfirm->fetchColumn();
 
-        .ph-mark-wrap {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
-            animation: ph-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
+        $statLoss = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status = 'lost'");
+        $statLoss->execute([$userId]);
+        $statLossLeads = $statLoss->fetchColumn();
 
-        .ph-mark {
-            position: relative;
-            width: 180px;
-            height: 180px;
-        }
+        $statWait = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status IN ('new','contacting','qualified')");
+        $statWait->execute([$userId]);
+        $statWaitLeads = $statWait->fetchColumn();
 
-        .ph-mark span {
-            position: absolute;
-            background: #F4A93A;
-        }
+        // Recent assigned leads
+        $stmtRecent = $pdo->prepare("
+            SELECT i.*, p.title as property_title 
+            FROM inquiries i 
+            LEFT JOIN properties p ON i.property_id = p.id 
+            WHERE i.assigned_to = ?
+            ORDER BY i.id DESC 
+            LIMIT 5
+        ");
+        $stmtRecent->execute([$userId]);
+        $recentInquiries = $stmtRecent->fetchAll();
 
-        .ph-mark .ph-v1 {
-            width: 14px;
-            height: 180px;
-            left: 52px;
-            border-radius: 7px;
-        }
+    } else {
+        // --- ADMIN / GLOBAL STATS ---
+        $statProperties = $pdo->query("SELECT COUNT(*) FROM properties")->fetchColumn();
+        $statCategories = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+        $statInquiries  = $pdo->query("SELECT COUNT(*) FROM inquiries")->fetchColumn();
+        $statMetaLeads  = $pdo->query("SELECT COUNT(*) FROM inquiries WHERE source = 'meta_ads'")->fetchColumn();
+        $statMetaClicks = $pdo->query("SELECT COUNT(*) FROM meta_ads_clicks")->fetchColumn();
+        
+        // Recent all leads
+        $stmtRecent = $pdo->query("
+            SELECT i.*, p.title as property_title 
+            FROM inquiries i 
+            LEFT JOIN properties p ON i.property_id = p.id 
+            ORDER BY i.id DESC 
+            LIMIT 5
+        ");
+        $recentInquiries = $stmtRecent->fetchAll();
+    }
+} catch (\Exception $e) {
+    // Graceful fallback
+}
+?>
 
-        .ph-mark .ph-v2 {
-            width: 14px;
-            height: 180px;
-            left: 114px;
-            border-radius: 7px;
-            background: #F5F1EA;
-            opacity: 0.85;
-        }
+<!-- Greetings Card banner -->
+<div class="bg-gradient-to-r from-brand-600 via-indigo-900 to-indigo-950 p-8 rounded-3xl shadow-lg border border-indigo-850/50 mb-8 text-white relative overflow-hidden">
+    <div class="absolute -right-20 -top-20 w-60 h-60 bg-amber-500/10 rounded-full blur-2xl"></div>
+    <div class="relative z-10 max-w-xl">
+        <h1 class="text-3xl font-black mb-2">Welcome Back, <?php echo htmlspecialchars($currentUser['username']); ?>!</h1>
+        <p class="text-indigo-200/80 font-light text-sm leading-relaxed">
+            <?php if ($isSalesEmployee): ?>
+                Here is your assigned leads overview. You can manage your pipeline, update statuses, and follow up with clients.
+            <?php else: ?>
+                Here is your real estate pipeline overview. You can manage property details, respond to customer inquiries, and track performance of Meta Ads campaigns.
+            <?php endif; ?>
+        </p>
+    </div>
+</div>
 
-        .ph-mark .ph-h1 {
-            height: 14px;
-            width: 180px;
-            top: 52px;
-            border-radius: 7px;
-            background: #F5F1EA;
-            opacity: 0.85;
-        }
-
-        .ph-mark .ph-h2 {
-            height: 14px;
-            width: 180px;
-            top: 114px;
-            border-radius: 7px;
-        }
-
-        .ph-mark .ph-dot {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #8A84A6;
-            top: 165px;
-            left: 165px;
-            animation: ph-pulse 2.2s ease-in-out infinite;
-        }
-
-        .ph-eyebrow {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 13px;
-            letter-spacing: 0.02em;
-            color: #F4A93A;
-            margin-bottom: 18px;
-            animation: ph-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
-        }
-
-        .ph-heading {
-            font-size: clamp(28px, 5vw, 42px);
-            font-weight: 800;
-            line-height: 1.15;
-            letter-spacing: -0.01em;
-            margin-bottom: 18px;
-            animation: ph-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
-        }
-
-        .ph-body {
-            font-size: 16px;
-            line-height: 1.65;
-            color: #C7C2DA;
-            max-width: 440px;
-            margin: 0 auto 36px;
-            animation: ph-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.26s both;
-        }
-
-        .ph-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 13px;
-            color: #F5F1EA;
-            background: rgba(245, 241, 234, 0.06);
-            border: 1px solid rgba(245, 241, 234, 0.14);
-            padding: 10px 18px;
-            border-radius: 100px;
-            margin-bottom: 44px;
-            animation: ph-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
-        }
-
-        .ph-status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #F4A93A;
-            animation: ph-pulse 2.2s ease-in-out infinite;
-        }
-
-        .ph-divider {
-            width: 48px;
-            height: 1px;
-            background: rgba(245, 241, 234, 0.18);
-            margin: 0 auto 32px;
-        }
-
-        .ph-contact {
-            animation: ph-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
-        }
-
-        .ph-contact-label {
-            font-size: 13px;
-            color: #8A84A6;
-            margin-bottom: 10px;
-        }
-
-        .ph-contact-link {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 15px;
-            color: #F5F1EA;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(244, 169, 58, 0.5);
-            padding-bottom: 2px;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .ph-contact-link:hover {
-            color: #F4A93A;
-            border-color: #F4A93A;
-        }
-
-        .ph-footer {
-            margin-top: 56px;
-            font-size: 12px;
-            color: #55506C;
-            letter-spacing: 0.02em;
-        }
-
-        @keyframes ph-rise {
-            from {
-                opacity: 0;
-                transform: translateY(14px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes ph-pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.4;
-                transform: scale(0.8);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-
-            .ph-mark-wrap,
-            .ph-eyebrow,
-            .ph-heading,
-            .ph-body,
-            .ph-status,
-            .ph-contact,
-            .ph-status-dot,
-            .ph-mark .ph-dot {
-                animation: none !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .ph-mark {
-                width: 140px;
-                height: 140px;
-            }
-
-            .ph-mark .ph-v1 {
-                left: 40px;
-                height: 140px;
-            }
-
-            .ph-mark .ph-v2 {
-                left: 88px;
-                height: 140px;
-            }
-
-            .ph-mark .ph-h1 {
-                top: 40px;
-                width: 140px;
-            }
-
-            .ph-mark .ph-h2 {
-                top: 88px;
-                width: 140px;
-            }
-
-            .ph-mark .ph-dot {
-                top: 128px;
-                left: 128px;
-            }
-        }
-    </style>
-</head>
-
-<body class="ph-reset">
-    <div class="ph-page">
-        <div class="ph-card">
-
-
-
-            <div class="ph-eyebrow">prime hashtag</div>
-
-            <h1 class="ph-heading">We're tightening a few bolts.</h1>
-
-            <p class="ph-body">
-                Our site is offline for scheduled maintenance right now. We're making things faster
-                and cleaner — thanks for your patience, we'll be back shortly.
-            </p>
-
-            <div class="ph-status">
-                <span class="ph-status-dot"></span>
-                Maintenance in progress
+<!-- Stats Counter Grid -->
+<div class="row g-4 mb-8">
+    <?php if ($isSalesEmployee): ?>
+        
+        <!-- Sales Stat 1: Total Leads -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Total Leads</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statTotalLeads ?? 0); ?></span>
+                </div>
             </div>
+        </div>
 
-            <div class="ph-divider"></div>
-
-            <div class="ph-contact">
-                <div class="ph-contact-label">Need us urgently? Reach out here</div>
-                <a class="ph-contact-link" href="mailto:sales@primehashtag.com">sales@primehashtag.com</a>
+        <!-- Sales Stat 2: Confirm Leads -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Confirm Leads</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statConfirmLeads ?? 0); ?></span>
+                </div>
             </div>
+        </div>
 
-            <div class="ph-footer">© 2026 Prime Hashtag. All rights reserved.</div>
+        <!-- Sales Stat 3: Loss Leads -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Loss Leads</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statLossLeads ?? 0); ?></span>
+                </div>
+            </div>
+        </div>
 
+        <!-- Sales Stat 4: Waiting Leads -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Waiting Leads</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statWaitLeads ?? 0); ?></span>
+                </div>
+            </div>
+        </div>
+
+    <?php else: ?>
+
+        <!-- Admin Stat 1: Properties -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-indigo-50 text-brand-500 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Total Listings</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statProperties ?? 0); ?></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Stat 2: Inquiries -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Total Leads</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statInquiries ?? 0); ?></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Stat 3: Meta Leads -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Meta Campaign Leads</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statMetaLeads ?? 0); ?></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Stat 4: Meta Click Track -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition duration-200">
+                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Meta Ads Clicks</span>
+                    <span class="text-2xl font-black text-slate-800"><?php echo number_format($statMetaClicks ?? 0); ?></span>
+                </div>
+            </div>
+        </div>
+
+    <?php endif; ?>
+</div>
+
+<div class="row g-5">
+    <!-- Left panel: Recent Leads Inbound -->
+    <div class="col-lg-8">
+        <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-base font-extrabold text-slate-800">Recent Leads &amp; Inquiries</h3>
+            </div>
+            
+            <?php if (empty($recentInquiries)): ?>
+                <p class="text-slate-400 text-xs text-center py-6">No inquiry submissions recorded yet.</p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle text-sm">
+                        <thead class="text-[10px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
+                            <tr>
+                                <th class="pb-3">Client</th>
+                                <th class="pb-3">Inquiry Message</th>
+                                <th class="pb-3">Source</th>
+                                <th class="pb-3">Status</th>
+                                <th class="pb-3 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php foreach ($recentInquiries as $inq): ?>
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="py-3">
+                                        <div class="font-bold text-slate-800 leading-snug"><?php echo htmlspecialchars($inq['name']); ?></div>
+                                        <div class="text-[10px] text-slate-400"><?php echo htmlspecialchars($inq['phone']); ?></div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="text-slate-600 block line-clamp-1 max-w-xs"><?php echo htmlspecialchars($inq['message']); ?></span>
+                                        <?php if ($inq['property_title']): ?>
+                                            <span class="text-[10px] text-brand-500 font-medium">Re: <?php echo htmlspecialchars($inq['property_title']); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-[10px] text-slate-400">General Consultation</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="py-3">
+                                        <?php if ($inq['source'] === 'meta_ads'): ?>
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-150">
+                                                Meta Ads
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-150">
+                                                Website
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="py-3">
+                                        <?php
+                                        $color = 'bg-slate-100 text-slate-600';
+                                        if ($inq['status'] === 'new') $color = 'bg-blue-100 text-blue-700';
+                                        elseif ($inq['status'] === 'qualified') $color = 'bg-emerald-100 text-emerald-700';
+                                        elseif ($inq['status'] === 'contacting') $color = 'bg-amber-100 text-amber-700';
+                                        elseif ($inq['status'] === 'closed') $color = 'bg-indigo-100 text-indigo-700';
+                                        elseif ($inq['status'] === 'lost') $color = 'bg-rose-100 text-rose-700';
+                                        ?>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider <?php echo $color; ?>">
+                                            <?php echo htmlspecialchars($inq['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-end">
+                                        <a href="lead-details.php?id=<?php echo $inq['id']; ?>" class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-brand-500 hover:text-white text-slate-600 rounded text-xs font-bold transition">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
-</body>
+</div>
 
-</html>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
