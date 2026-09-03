@@ -96,9 +96,33 @@ define('LEAD_STATUSES', [
 ]);
 
 /**
+ * Maps old/legacy status values to new workflow status keys.
+ * This handles leads that were NOT migrated via the migration script.
+ */
+define('LEGACY_STATUS_MAP', [
+    'new'        => 'fresh_lead',
+    'contacting' => 'follow_up',
+    'qualified'  => 'interested',
+    'lost'       => 'sale_lost',
+    'closed'     => 'booking_done',
+]);
+
+/**
+ * Normalizes a status value — converts any legacy status to the new key.
+ * Always use this before looking up LEAD_STATUSES.
+ */
+function normalize_status($statusKey) {
+    if (isset(LEGACY_STATUS_MAP[$statusKey])) {
+        return LEGACY_STATUS_MAP[$statusKey];
+    }
+    return $statusKey;
+}
+
+/**
  * Returns the HTML badge for a given status.
  */
 function get_status_badge($statusKey) {
+    $statusKey = normalize_status($statusKey);
     if (!isset(LEAD_STATUSES[$statusKey])) {
         // Fallback for unknown status
         return '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">' . htmlspecialchars($statusKey) . '</span>';
@@ -112,6 +136,7 @@ function get_status_badge($statusKey) {
  * Returns the label for a given status.
  */
 function get_status_label($statusKey) {
+    $statusKey = normalize_status($statusKey);
     if (!isset(LEAD_STATUSES[$statusKey])) return ucfirst($statusKey);
     return LEAD_STATUSES[$statusKey]['label'];
 }

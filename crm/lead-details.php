@@ -15,7 +15,7 @@ $errorMsg   = '';
 // Handle POST: Update Status (and Add Note)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $newStatus = trim($_POST['new_status']);
-    $oldStatus = trim($_POST['old_status']);
+    $oldStatus = normalize_status(trim($_POST['old_status']));
     $noteText  = trim($_POST['note_text']);
     $schedDate = !empty($_POST['scheduled_datetime']) ? trim($_POST['scheduled_datetime']) : null;
     
@@ -147,7 +147,8 @@ try {
             </div>
 
             <?php 
-            $currKey = $lead['status'];
+            // Normalize status in case the lead still has an old/legacy status (e.g. 'new', 'contacting', 'lost')
+            $currKey    = normalize_status($lead['status']);
             $currConfig = LEAD_STATUSES[$currKey] ?? null;
             $nextOptions = $currConfig ? $currConfig['next'] : [];
             ?>
@@ -179,7 +180,7 @@ try {
             <h3 class="text-sm font-extrabold text-slate-800 mb-4" id="statusFormTitle">Update Status</h3>
             <form action="lead-details.php?id=<?= $leadId ?>" method="POST" class="space-y-4">
                 <input type="hidden" name="update_status" value="1">
-                <input type="hidden" name="old_status" value="<?= htmlspecialchars($lead['status']) ?>">
+                <input type="hidden" name="old_status" value="<?= htmlspecialchars($currKey) ?>">
                 <input type="hidden" name="new_status" id="new_status_input" value="">
 
                 <div id="scheduleContainer" class="hidden">
