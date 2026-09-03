@@ -3,6 +3,7 @@
 $pageTitle = "Imported Google Sheet Leads";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/lead_status_helper.php';
 
 require_permission('inquiries', 'view');
 
@@ -245,8 +246,8 @@ function pagUrl(array $base, int $p): string {
         <div class="col-md-2">
             <select name="status" class="w-full px-2 py-2 rounded bg-white border border-slate-200 text-xs">
                 <option value="">All Statuses</option>
-                <?php foreach (['new' => 'New', 'contacting' => 'Contacting', 'qualified' => 'Qualified', 'lost' => 'Lost', 'closed' => 'Closed'] as $v => $l): ?>
-                    <option value="<?= $v ?>" <?= $filterStatus === $v ? 'selected' : '' ?>><?= $l ?></option>
+                <?php foreach (LEAD_STATUSES as $k => $v): ?>
+                    <option value="<?= $k ?>" <?= $filterStatus === $k ? 'selected' : '' ?>><?= $v['label'] ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -447,18 +448,7 @@ function pagUrl(array $base, int $p): string {
 
                             <!-- Update Status -->
                             <td class="py-3 text-end flex flex-col gap-1 items-end">
-                                <form action="excel-leads.php?<?= $_SERVER['QUERY_STRING'] ?? '' ?>" method="POST"
-                                    class="inline-flex">
-                                    <input type="hidden" name="inquiry_id" value="<?= $lead['id'] ?>">
-                                    <input type="hidden" name="update_status" value="1">
-                                    <select name="status" onchange="this.form.submit()"
-                                        class="px-2 py-1 bg-slate-50 border border-slate-200 text-xs rounded font-medium focus:outline-none">
-                                        <?php foreach (['new' => 'New', 'contacting' => 'Contact', 'qualified' => 'Qualify', 'lost' => 'Lost', 'closed' => 'Closed'] as $v => $l): ?>
-                                            <option value="<?= $v ?>" <?= $lead['status'] === $v ? 'selected' : '' ?>><?= $l ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </form>
+                                <?= get_status_badge($lead['status']) ?>
                                 <a href="lead-details.php?id=<?= $lead['id'] ?>"
                                     class="px-2.5 py-1 bg-brand-50 hover:bg-brand-500 hover:text-white text-brand-600 rounded text-[10px] font-bold transition">View
                                     Details →</a>

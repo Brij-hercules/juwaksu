@@ -3,6 +3,7 @@
 $pageTitle = "Lead Details";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/lead_status_helper.php';
 
 $leadId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $userId = $currentUser['id'];
@@ -11,25 +12,45 @@ $isAdmin = in_array($currentUser['role_name'], ['Admin', 'Meta Manager']);
 $successMsg = '';
 $errorMsg   = '';
 
-// Handle POST: Update Status
+// Handle POST: Update Status (and Add Note)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $newStatus = trim($_POST['status']);
-    try {
-        $stmt = $pdo->prepare("UPDATE inquiries SET status = ? WHERE id = ?");
-        $stmt->execute([$newStatus, $leadId]);
-        $successMsg = "Lead status updated to " . htmlspecialchars($newStatus) . ".";
-    } catch (\PDOException $e) {
-        $errorMsg = "Error updating status: " . $e->getMessage();
+    $newStatus = trim($_POST['new_status']);
+    $oldStatus = trim($_POST['old_status']);
+    $noteText  = trim($_POST['note_text']);
+    $schedDate = !empty($_POST['scheduled_datetime']) ? trim($_POST['scheduled_datetime']) : null;
+    
+    // Only update if valid status
+    if (isset(LEAD_STATUSES[$newStatus])) {
+        try {
+            $pdo->beginTransaction();
+            
+            // 1. Update Lead
+            $stmt = $pdo->prepare("UPDATE inquiries SET status = ?, scheduled_datetime = ? WHERE id = ?");
+            $stmt->execute([$newStatus, $schedDate, $leadId]);
+            
+            // 2. Add to unified log
+            $stmtLog = $pdo->prepare("INSERT INTO lead_status_log (inquiry_id, changed_by, old_status, new_status, comment, scheduled_datetime) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtLog->execute([$leadId, $userId, $oldStatus, $newStatus, $noteText, $schedDate]);
+            
+            $pdo->commit();
+            $successMsg = "Lead updated successfully.";
+        } catch (\PDOException $e) {
+            $pdo->rollBack();
+            $errorMsg = "Error updating lead: " . $e->getMessage();
+        }
+    } else {
+        $errorMsg = "Invalid status selected.";
     }
 }
 
-// Handle POST: Add Note
+// Handle POST: Add Note only (no status change)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
     $noteText = trim($_POST['note_text']);
+    $currentStatus = trim($_POST['current_status']);
     if (!empty($noteText)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO lead_notes (inquiry_id, user_id, note_text) VALUES (?, ?, ?)");
-            $stmt->execute([$leadId, $userId, $noteText]);
+            $stmt = $pdo->prepare("INSERT INTO lead_status_log (inquiry_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$leadId, $userId, $currentStatus, $currentStatus, $noteText]);
             $successMsg = "Note added successfully.";
         } catch (\PDOException $e) {
             $errorMsg = "Error adding note: " . $e->getMessage();
@@ -52,21 +73,33 @@ try {
         die("<div class='p-8 text-center text-rose-500 font-bold'>Lead not found.</div>");
     }
 
-    // Access control: Sales Employee can only view their own assigned leads
+    // Access control
     if (!$isAdmin && $lead['assigned_to'] != $userId) {
         die("<div class='p-8 text-center text-rose-500 font-bold'>You do not have permission to view this lead.</div>");
     }
 
-    // Fetch Notes
+    // Fetch Unified Timeline (lead_status_log + legacy lead_notes)
+    // We UNION them to keep legacy notes visible in the timeline
     $stmtNotes = $pdo->prepare("
-        SELECT n.*, u.username, u.role_id, r.role_name
+        SELECT l.id, l.old_status, l.new_status, l.comment, l.scheduled_datetime, l.created_at, 
+               u.username, u.role_id, r.role_name
+        FROM lead_status_log l
+        JOIN users u ON l.changed_by = u.id
+        JOIN roles r ON u.role_id = r.id
+        WHERE l.inquiry_id = ?
+        
+        UNION ALL
+        
+        SELECT n.id, NULL as old_status, NULL as new_status, n.note_text as comment, NULL as scheduled_datetime, n.created_at,
+               u.username, u.role_id, r.role_name
         FROM lead_notes n
         JOIN users u ON n.user_id = u.id
         JOIN roles r ON u.role_id = r.id
         WHERE n.inquiry_id = ?
-        ORDER BY n.created_at DESC
+        
+        ORDER BY created_at DESC
     ");
-    $stmtNotes->execute([$leadId]);
+    $stmtNotes->execute([$leadId, $leadId]);
     $notes = $stmtNotes->fetchAll();
 
 } catch (\Exception $e) {
@@ -107,14 +140,64 @@ try {
         <!-- Status Box -->
         <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-5">
             <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-4">Pipeline Status</h3>
-            <form action="lead-details.php?id=<?= $leadId ?>" method="POST" class="flex gap-2">
+            
+            <div class="mb-5">
+                <span class="text-xs text-slate-500 font-medium mr-2">Current:</span>
+                <?= get_status_badge($lead['status']) ?>
+            </div>
+
+            <?php 
+            $currKey = $lead['status'];
+            $currConfig = LEAD_STATUSES[$currKey] ?? null;
+            $nextOptions = $currConfig ? $currConfig['next'] : [];
+            ?>
+
+            <?php if (!empty($nextOptions)): ?>
+                <div class="space-y-3 border-t border-slate-100 pt-4">
+                    <p class="text-xs font-bold text-slate-600 mb-2">Update Stage To:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($nextOptions as $nextKey): 
+                            $nConf = LEAD_STATUSES[$nextKey];
+                        ?>
+                            <button type="button" onclick="openStatusForm('<?= $nextKey ?>', '<?= addslashes($nConf['label']) ?>', <?= $nConf['schedule'] ? 'true' : 'false' ?>)"
+                                class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 hover:border-slate-300 transition shadow-sm">
+                                <?= htmlspecialchars($nConf['label']) ?> →
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+                    <span class="inline-block px-3 py-1 bg-slate-50 text-slate-400 text-xs font-bold rounded-lg border border-slate-100">🏁 Final Stage Reached</span>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Hidden Form for Status Update -->
+        <div id="statusFormContainer" class="hidden bg-white rounded-2xl border border-blue-200 shadow-sm p-6 mb-5 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+            <h3 class="text-sm font-extrabold text-slate-800 mb-4" id="statusFormTitle">Update Status</h3>
+            <form action="lead-details.php?id=<?= $leadId ?>" method="POST" class="space-y-4">
                 <input type="hidden" name="update_status" value="1">
-                <select name="status" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 text-sm font-bold rounded-lg focus:outline-none">
-                    <?php foreach (['new'=>'New','contacting'=>'Contacting','qualified'=>'Qualified','lost'=>'Lost','closed'=>'Closed / Confirmed'] as $v=>$l): ?>
-                        <option value="<?= $v ?>" <?= $lead['status']===$v?'selected':'' ?>><?= $l ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition">Update</button>
+                <input type="hidden" name="old_status" value="<?= htmlspecialchars($lead['status']) ?>">
+                <input type="hidden" name="new_status" id="new_status_input" value="">
+
+                <div id="scheduleContainer" class="hidden">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Schedule Date & Time *</label>
+                    <input type="datetime-local" name="scheduled_datetime" id="scheduled_datetime" 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Update Comment *</label>
+                    <textarea name="note_text" rows="2" required placeholder="Add notes for this status change..."
+                        class="w-full p-3 bg-slate-50 border border-slate-200 text-sm rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition shadow-sm">Save Update</button>
+                    <button type="button" onclick="closeStatusForm()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-bold transition">Cancel</button>
+                </div>
             </form>
         </div>
 
@@ -207,15 +290,16 @@ try {
                 Conversation Notes
             </h3>
             
-            <!-- Add Note Form -->
+            <!-- Add Note Form (Generic Note without status change) -->
             <form action="lead-details.php?id=<?= $leadId ?>" method="POST" class="mb-8">
                 <input type="hidden" name="add_note" value="1">
+                <input type="hidden" name="current_status" value="<?= htmlspecialchars($lead['status']) ?>">
                 <textarea name="note_text" rows="3" required
-                    placeholder="Type details about your call or conversation with the client..."
+                    placeholder="Type a general note or conversation detail (does not change status)..."
                     class="w-full p-4 bg-slate-50 border border-slate-200 text-sm rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition resize-none mb-3"></textarea>
                 <div class="text-right">
-                    <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-brand-600 text-white rounded-xl text-sm font-bold transition">
-                        Save Note
+                    <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-brand-600 text-white rounded-xl text-sm font-bold transition shadow-sm">
+                        Add Note
                     </button>
                 </div>
             </form>
@@ -225,14 +309,16 @@ try {
                 <?php if (empty($notes)): ?>
                     <div class="text-center py-12 text-slate-400 text-sm">
                         <div class="text-4xl mb-3">📝</div>
-                        No notes added yet. Start typing above.
+                        No activity recorded yet.
                     </div>
                 <?php else: ?>
                     <div class="relative border-l-2 border-slate-100 ml-4 pl-6 space-y-8 pb-4">
-                        <?php foreach ($notes as $note): ?>
+                        <?php foreach ($notes as $note): 
+                            $isStatusChange = ($note['old_status'] !== $note['new_status'] && !empty($note['new_status']));
+                        ?>
                             <div class="relative">
                                 <!-- Dot -->
-                                <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-white <?php echo $note['role_name'] === 'Admin' ? 'bg-amber-500' : 'bg-blue-500'; ?>"></div>
+                                <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-white <?php echo $isStatusChange ? 'bg-blue-500' : 'bg-slate-300'; ?>"></div>
                                 
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-2">
@@ -246,7 +332,24 @@ try {
                                     </span>
                                 </div>
                                 
-                                <div class="p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-700 whitespace-pre-wrap leading-relaxed shadow-sm"><?php echo htmlspecialchars($note['note_text']); ?></div>
+                                <?php if ($isStatusChange): ?>
+                                    <div class="flex items-center gap-2 mb-2 text-xs font-bold text-slate-500">
+                                        <span><?= $note['old_status'] ? get_status_label($note['old_status']) : 'Created' ?></span>
+                                        <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                        <?= get_status_badge($note['new_status']) ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($note['comment'])): ?>
+                                <div class="p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-700 whitespace-pre-wrap leading-relaxed shadow-sm"><?php echo htmlspecialchars($note['comment']); ?></div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($note['scheduled_datetime'])): ?>
+                                    <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 text-xs font-bold">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        Scheduled: <?= date('d M Y, h:i A', strtotime($note['scheduled_datetime'])) ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -255,5 +358,27 @@ try {
         </div>
     </div>
 </div>
+
+<script>
+function openStatusForm(nextKey, label, requiresSchedule) {
+    document.getElementById('statusFormContainer').classList.remove('hidden');
+    document.getElementById('statusFormTitle').innerText = 'Update Status to: ' + label;
+    document.getElementById('new_status_input').value = nextKey;
+    
+    const sched = document.getElementById('scheduleContainer');
+    const schedInput = document.getElementById('scheduled_datetime');
+    if (requiresSchedule) {
+        sched.classList.remove('hidden');
+        schedInput.required = true;
+    } else {
+        sched.classList.add('hidden');
+        schedInput.required = false;
+        schedInput.value = '';
+    }
+}
+function closeStatusForm() {
+    document.getElementById('statusFormContainer').classList.add('hidden');
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
