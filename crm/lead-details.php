@@ -116,6 +116,24 @@ try {
 } catch (\Exception $e) {
     die("<div class='p-8 text-center text-rose-500 font-bold'>Database error: " . $e->getMessage() . "</div>");
 }
+<?php
+// Helper: Format phone to Indian format (+91 XXXXX XXXXX)
+function formatIndianPhone($phone) {
+    // Remove all non-digit characters except leading +
+    $clean = preg_replace('/[^\d]/', '', $phone);
+    // Remove country code 91 if present (10-digit numbers)
+    if (strlen($clean) === 12 && substr($clean, 0, 2) === '91') {
+        $clean = substr($clean, 2);
+    } elseif (strlen($clean) === 13 && substr($clean, 0, 3) === '091') {
+        $clean = substr($clean, 3);
+    }
+    // Format as +91 XXXXX XXXXX if 10 digits
+    if (strlen($clean) === 10) {
+        return '+91 ' . substr($clean, 0, 5) . ' ' . substr($clean, 5);
+    }
+    // Fallback: return as-is
+    return $phone;
+}
 ?>
 
 <div class="flex items-center gap-4 mb-6">
@@ -246,8 +264,8 @@ try {
                     <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                     </div>
-                    <a href="tel:<?php echo htmlspecialchars($lead['phone']); ?>" class="font-bold text-slate-800 hover:text-emerald-600 transition">
-                        <?php echo htmlspecialchars($lead['phone']); ?>
+                    <a href="tel:<?php echo htmlspecialchars(preg_replace('/[^\d+]/', '', $lead['phone'])); ?>" class="font-bold text-slate-800 hover:text-emerald-600 transition">
+                        <?php echo htmlspecialchars(formatIndianPhone($lead['phone'])); ?>
                     </a>
                 </div>
                 <?php if ($lead['email']): ?>
