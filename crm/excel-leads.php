@@ -135,7 +135,7 @@ try {
     $agents = $pdo->query("
         SELECT u.id, u.username, r.role_name
         FROM users u JOIN roles r ON u.role_id = r.id
-        WHERE u.status='active' AND r.role_name IN ('Admin','Sales Employee','Meta Manager')
+        WHERE u.status='active' AND r.role_name = 'Sales Employee'
         ORDER BY u.username
     ")->fetchAll();
 
