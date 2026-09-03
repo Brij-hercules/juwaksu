@@ -143,3 +143,28 @@ function get_status_label($statusKey) {
     if (!isset(LEAD_STATUSES[$statusKey])) return ucfirst($statusKey);
     return LEAD_STATUSES[$statusKey]['label'];
 }
+
+/**
+ * Returns the next Sales Employee ID to assign a lead to.
+ * Uses least-load round-robin: picks the active Sales Employee with the fewest assigned leads.
+ * Returns null if no Sales Employees exist.
+ */
+function get_next_sales_employee(\PDO $pdo): ?int {
+    try {
+        // Get all active Sales Employees with their current lead counts
+        $stmt = $pdo->query("
+            SELECT u.id, u.username, COUNT(i.id) as lead_count
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            LEFT JOIN inquiries i ON i.assigned_to = u.id
+            WHERE u.status = 'active' AND r.role_name = 'Sales Employee'
+            GROUP BY u.id, u.username
+            ORDER BY lead_count ASC, u.id ASC
+            LIMIT 1
+        ");
+        $emp = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $emp ? (int)$emp['id'] : null;
+    } catch (\Exception $e) {
+        return null;
+    }
+}

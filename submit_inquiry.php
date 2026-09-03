@@ -1,6 +1,7 @@
 <?php
 // submit_inquiry.php
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/lead_status_helper.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -17,11 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($name) && !empty($phone)) {
         try {
+            // Auto-assign to the Sales Employee with the fewest leads
+            $assignedTo = get_next_sales_employee($pdo);
+
             $stmt = $pdo->prepare("
-                INSERT INTO inquiries (property_id, name, email, phone, message, status, source, campaign_name) 
-                VALUES (?, ?, ?, ?, ?, 'fresh_lead', ?, ?)
+                INSERT INTO inquiries (property_id, name, email, phone, message, status, source, campaign_name, assigned_to) 
+                VALUES (?, ?, ?, ?, ?, 'fresh_lead', ?, ?, ?)
             ");
-            $stmt->execute([$property_id, $name, $email, $phone, $message, $source, $campaign_name]);
+            $stmt->execute([$property_id, $name, $email, $phone, $message, $source, $campaign_name, $assignedTo]);
             
             $_SESSION['inquiry_success'] = "Your inquiry has been successfully captured. Our representative will contact you shortly!";
         } catch (\PDOException $e) {

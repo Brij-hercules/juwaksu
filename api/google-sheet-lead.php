@@ -58,6 +58,7 @@ try {
 
     // 2. Fetch connection and settings
     require_once __DIR__ . '/../config/db.php';
+    require_once __DIR__ . '/../includes/lead_status_helper.php';
 
     // 3. API Key Authorization
     $apiKeyHeader = null;
@@ -230,17 +231,19 @@ try {
     if ($investedBefore) $msgContent .= "Invested Before: $investedBefore\n";
     if ($formName) $msgContent .= "Form: $formName\n";
 
+    $assignedTo = get_next_sales_employee($pdo);
+
     // Prepare insert statement
     $sql = "INSERT INTO inquiries (
                 property_id, name, email, phone, message, status, source, campaign_name,
                 meta_lead_id, ad_id, ad_name, adset_id, adset_name, campaign_id,
                 form_id, form_name, is_organic, platform, are_you_looking_for,
-                budget, purchase_time, have_you_invested_in_property_before, lead_status, created_at
+                budget, purchase_time, have_you_invested_in_property_before, lead_status, created_at, assigned_to
             ) VALUES (
                 NULL, ?, ?, ?, ?, 'fresh_lead', 'meta_ads', ?,
                 ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?
             )";
 
     $stmtInsert = $pdo->prepare($sql);
@@ -268,7 +271,8 @@ try {
         $purchaseTime,
         $investedBefore,
         $leadStatus,
-        $createdAt
+        $createdAt,
+        $assignedTo
     ]);
 
     $insertedId = $pdo->lastInsertId();

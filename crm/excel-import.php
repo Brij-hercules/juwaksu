@@ -3,6 +3,7 @@
 $pageTitle = "Excel Sheet Import";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/lead_status_helper.php';
 
 require_permission('inquiries', 'create');
 
@@ -94,19 +95,21 @@ if (
         if (!empty($r['have_you_invested_in_property_before'])) $msg .= "Invested Before: {$r['have_you_invested_in_property_before']}\n";
         if (!empty($r['form_name']))                       $msg .= "Form: {$r['form_name']}\n";
 
+        $assignedTo = get_next_sales_employee($pdo);
+
         try {
             $sql = "INSERT INTO inquiries (
                         property_id, name, email, phone, message, status, source, campaign_name,
                         meta_lead_id, ad_id, ad_name, adset_id, adset_name, campaign_id,
                         form_id, form_name, is_organic, platform,
                         are_you_looking_for, budget, purchase_time,
-                        have_you_invested_in_property_before, lead_status, created_at
+                        have_you_invested_in_property_before, lead_status, created_at, assigned_to
                     ) VALUES (
                         NULL, ?, ?, ?, ?, 'fresh_lead', 'meta_ads', ?,
                         ?, ?, ?, ?, ?, ?,
                         ?, ?, ?, ?,
                         ?, ?, ?,
-                        ?, ?, ?
+                        ?, ?, ?, ?
                     )";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
@@ -134,6 +137,7 @@ if (
                 $r['have_you_invested_in_property_before'] ?? null,
                 $r['lead_status'] ?? 'received',
                 $createdAt,
+                $assignedTo,
             ]);
 
             $results['imported']++;
