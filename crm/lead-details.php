@@ -116,7 +116,6 @@ try {
 } catch (\Exception $e) {
     die("<div class='p-8 text-center text-rose-500 font-bold'>Database error: " . $e->getMessage() . "</div>");
 }
-<?php
 // Helper: Format phone to Indian format (+91 XXXXX XXXXX)
 function formatIndianPhone($phone) {
     // Remove all non-digit characters except leading +
