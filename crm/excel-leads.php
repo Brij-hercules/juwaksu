@@ -85,8 +85,17 @@ if ($filterCampaign) {
     $params[] = $filterCampaign;
 }
 if ($filterStatus) {
-    $where   .= " AND i.status = ?";
-    $params[] = $filterStatus;
+    $filterStatusNorm = normalize_status($filterStatus);
+    $legacyMatches = array_keys(array_filter(LEGACY_STATUS_MAP, fn($v) => $v === $filterStatusNorm));
+    if (!empty($legacyMatches)) {
+        $placeholders = implode(',', array_fill(0, count($legacyMatches), '?'));
+        $where .= " AND (COALESCE(NULLIF(i.status,''),'fresh_lead') = ? OR i.status IN ($placeholders))";
+        $params[] = $filterStatusNorm;
+        foreach ($legacyMatches as $lm) $params[] = $lm;
+    } else {
+        $where .= " AND COALESCE(NULLIF(i.status,''),'fresh_lead') = ?";
+        $params[] = $filterStatusNorm;
+    }
 }
 if ($filterStart) {
     $where   .= " AND DATE(i.created_at) >= ?";

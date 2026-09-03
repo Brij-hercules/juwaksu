@@ -68,7 +68,7 @@ try {
             // Match both old and new status values
             $legacyMatches = array_keys(array_filter(LEGACY_STATUS_MAP, fn($v) => $v === $filterStatusNorm));
             if (!empty($legacyMatches)) {
-                $placeholders = implode(',', array_fill(0, count($legacyMatches) + 1, '?'));
+                $placeholders = implode(',', array_fill(0, count($legacyMatches), '?'));
                 $where .= " AND (COALESCE(NULLIF(i.status,''),'fresh_lead') = ? OR i.status IN ($placeholders))";
                 $params[] = $filterStatusNorm;
                 foreach ($legacyMatches as $lm) $params[] = $lm;
