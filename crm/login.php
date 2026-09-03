@@ -23,9 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SELECT u.*, r.role_name 
                 FROM users u 
                 JOIN roles r ON u.role_id = r.id 
-                WHERE u.username = ? AND u.status = 'active'
+                WHERE (u.username = ? OR u.email = ?) AND u.status = 'active'
             ");
-            $stmt->execute([$username]);
+            $stmt->execute([$username, $username]);
             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password_hash'])) {
@@ -158,17 +158,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form action="login.php" method="POST" class="space-y-5">
                 <div>
                     <label for="username"
-                        class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Username</label>
+                        class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Username or Email</label>
                     <input type="text" name="username" id="username" required
                         class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400"
-                        placeholder="e.g. admin">
+                        placeholder="e.g. admin or admin@example.com">
                 </div>
 
                 <div>
                     <div class="flex justify-between items-baseline mb-2">
                         <label for="password"
                             class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-                        <span class="text-[10px] text-slate-400">admin123 / sales123</span>
                     </div>
                     <input type="password" name="password" id="password" required
                         class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400"
