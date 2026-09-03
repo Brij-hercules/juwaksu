@@ -22,36 +22,61 @@ if (!$agent) {
     die("<div class='p-8 text-center text-rose-500 font-bold'>Employee not found or inactive.</div>");
 }
 
-// Fetch their Leads
-$query = "
-    SELECT i.*, p.title as property_title 
-    FROM inquiries i 
-    LEFT JOIN properties p ON i.property_id = p.id 
-    WHERE i.assigned_to = ?
-";
+// ── Status-wise counts ───────────────────────────────────────
+$rawStatusCounts = $pdo->prepare("SELECT COALESCE(NULLIF(status,''),'fresh_lead') as st, COUNT(*) as cnt FROM inquiries WHERE assigned_to = ? GROUP BY st");
+$rawStatusCounts->execute([$employeeId]);
+$statusCounts = [];
+foreach ($rawStatusCounts->fetchAll() as $r) {
+    $normalized = normalize_status($r['st']);
+    $statusCounts[$normalized] = ($statusCounts[$normalized] ?? 0) + (int)$r['cnt'];
+}
+
+// ── Pagination config ──────────────────────────────────
+$perPage     = 50;
+$currentPage = max(1, intval($_GET['page'] ?? 1));
+
+// ── Fetch their Leads ───────────────────────────────────────
+$where  = "WHERE i.assigned_to = ?";
 $params = [$employeeId];
 
 if (!empty($filterStatus)) {
-    $query .= " AND i.status = ?";
-    $params[] = $filterStatus;
+    $filterStatusNorm = normalize_status($filterStatus);
+    $legacyMatches = array_keys(array_filter(LEGACY_STATUS_MAP, fn($v) => $v === $filterStatusNorm));
+    if (!empty($legacyMatches)) {
+        $placeholders = implode(',', array_fill(0, count($legacyMatches) + 1, '?'));
+        $where .= " AND (COALESCE(NULLIF(i.status,''),'fresh_lead') = ? OR i.status IN ($placeholders))";
+        $params[] = $filterStatusNorm;
+        foreach ($legacyMatches as $lm) $params[] = $lm;
+    } else {
+        $where .= " AND COALESCE(NULLIF(i.status,''),'fresh_lead') = ?";
+        $params[] = $filterStatusNorm;
+    }
 }
-$query .= " ORDER BY i.created_at DESC";
 
-$stmtLeads = $pdo->prepare($query);
+// Count total for pagination
+$countStmt = $pdo->prepare("SELECT COUNT(*) FROM inquiries i $where");
+$countStmt->execute($params);
+$totalLeads = (int)$countStmt->fetchColumn();
+$totalPages = max(1, ceil($totalLeads / $perPage));
+$currentPage = min($currentPage, $totalPages);
+$offset = ($currentPage - 1) * $perPage;
+
+// Fetch leads
+$stmtLeads = $pdo->prepare("
+    SELECT i.*, p.title as property_title 
+    FROM inquiries i 
+    LEFT JOIN properties p ON i.property_id = p.id 
+    $where
+    ORDER BY i.created_at DESC
+    LIMIT $perPage OFFSET $offset
+");
 $stmtLeads->execute($params);
 $leads = $stmtLeads->fetchAll();
 
-// Group statuses into Tabs for easy filtering (High level)
-// You can adjust these buckets based on what's most useful for the Admin
-$statusTabs = [
-    '' => 'All Leads',
-    'fresh_lead' => 'Fresh Leads',
-    'follow_up' => 'Follow Up Due',
-    'interested' => 'Interested',
-    'visit_planned' => 'Visits Planned',
-    'booking_done' => 'Won / Closed',
-    'sale_lost' => 'Lost'
-];
+function pgUrl($id, $page, $status) {
+    $q = array_filter(['id' => $id, 'page' => $page, 'status' => $status]);
+    return 'sales-employee-details.php?' . http_build_query($q);
+}
 ?>
 
 <div class="flex items-center gap-4 mb-6">
@@ -67,30 +92,32 @@ $statusTabs = [
     </div>
 </div>
 
-<div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-8">
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div class="flex flex-wrap gap-2">
-            <?php foreach ($statusTabs as $k => $label): 
-                $isActive = $filterStatus === $k;
-            ?>
-                <a href="sales-employee-details.php?id=<?= $employeeId ?><?= $k ? '&status='.$k : '' ?>" 
-                   class="px-3 py-1.5 rounded-lg text-xs font-bold transition <?= $isActive ? 'bg-slate-800 text-white shadow-sm' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200' ?>">
-                    <?= $label ?>
-                </a>
-            <?php endforeach; ?>
-        </div>
+<!-- Status-wise Quick Boxes -->
+<div class="mb-6">
+    <div class="flex flex-wrap gap-2 mb-2">
+        <a href="<?= pgUrl($employeeId, 1, '') ?>"
+            class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition
+                <?= empty($filterStatus) ? 'bg-slate-800 text-white border-slate-800 shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-sm' ?>">
+            <span>All Leads</span>
+            <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black <?= empty($filterStatus) ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' ?>"><?= array_sum($statusCounts) ?></span>
+        </a>
         
-        <div class="flex gap-2">
-            <?php
-            $exportQuery = http_build_query([
-                'module' => 'inquiries', // Export uses inquiries but we can filter by assigned_to in next update if needed, actually export.php doesn't support assigned_to yet, we can add it or just export all
-            ]);
-            // Currently export.php doesn't have an assigned_to filter, so it might export all if they click here.
-            // A quick fix is to pass assigned_to=X to export.php and update export.php to respect it.
-            ?>
-        </div>
+        <?php foreach (LEAD_STATUSES as $stKey => $stConf): 
+            $cnt = $statusCounts[$stKey] ?? 0;
+            $isActive = ($filterStatus === $stKey);
+        ?>
+            <a href="<?= pgUrl($employeeId, 1, $isActive ? '' : $stKey) ?>"
+               class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition
+                      <?= $isActive ? 'bg-slate-800 text-white border-slate-800 shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-sm' ?>">
+                <span><?= htmlspecialchars($stConf['label']) ?></span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black <?= $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' ?>"><?= $cnt ?></span>
+            </a>
+        <?php endforeach; ?>
     </div>
+</div>
 
+<div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-8">
+    
     <!-- Leads Table -->
     <div class="table-responsive">
         <table class="table table-hover align-middle text-sm">
@@ -147,6 +174,42 @@ $statusTabs = [
             </tbody>
         </table>
     </div>
+    
+    <?php if ($totalPages > 1): ?>
+    <!-- Pagination -->
+    <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+        <div class="text-[10px] text-slate-400 font-medium">
+            Showing <strong><?= count($leads) ?></strong> of <strong><?= $totalLeads ?></strong> leads — Page <strong><?= $currentPage ?></strong> of <strong><?= $totalPages ?></strong>
+        </div>
+        <nav class="flex items-center gap-1 flex-wrap">
+            <?php if ($currentPage > 1): ?>
+                <a href="<?= pgUrl($employeeId, $currentPage - 1, $filterStatus) ?>" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-600 hover:bg-slate-50 font-medium transition">← Prev</a>
+            <?php else: ?>
+                <span class="px-3 py-1.5 rounded-lg border border-slate-100 bg-slate-50 text-xs text-slate-300 font-medium">← Prev</span>
+            <?php endif; ?>
+
+            <?php
+            $pStart = max(1, $currentPage - 2);
+            $pEnd   = min($totalPages, $currentPage + 2);
+            if ($pStart > 1) echo '<a href="'.pgUrl($employeeId, 1, $filterStatus).'" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-600 hover:bg-slate-50 font-medium transition">1</a>';
+            if ($pStart > 2) echo '<span class="px-1 text-slate-300 text-xs">…</span>';
+            for ($p = $pStart; $p <= $pEnd; $p++):
+            ?>
+                <a href="<?= pgUrl($employeeId, $p, $filterStatus) ?>" class="px-3 py-1.5 rounded-lg border text-xs font-medium transition <?= $p === $currentPage ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50' ?>"><?= $p ?></a>
+            <?php endfor; ?>
+            <?php
+            if ($pEnd < $totalPages - 1) echo '<span class="px-1 text-slate-300 text-xs">…</span>';
+            if ($pEnd < $totalPages) echo '<a href="'.pgUrl($employeeId, $totalPages, $filterStatus).'" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-600 hover:bg-slate-50 font-medium transition">'.$totalPages.'</a>';
+            ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="<?= pgUrl($employeeId, $currentPage + 1, $filterStatus) ?>" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-600 hover:bg-slate-50 font-medium transition">Next →</a>
+            <?php else: ?>
+                <span class="px-3 py-1.5 rounded-lg border border-slate-100 bg-slate-50 text-xs text-slate-300 font-medium">Next →</span>
+            <?php endif; ?>
+        </nav>
+    </div>
+    <?php endif; ?>
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

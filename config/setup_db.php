@@ -85,7 +85,7 @@ try {
         email VARCHAR(100) NOT NULL,
         phone VARCHAR(20) NOT NULL,
         message TEXT,
-        status ENUM('new', 'contacting', 'qualified', 'lost', 'closed') DEFAULT 'new',
+        status VARCHAR(50) DEFAULT 'fresh_lead',
         assigned_to INT NULL,
         source ENUM('website', 'meta_ads') DEFAULT 'website',
         campaign_name VARCHAR(100) NULL,
