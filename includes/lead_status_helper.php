@@ -112,6 +112,9 @@ define('LEGACY_STATUS_MAP', [
  * Always use this before looking up LEAD_STATUSES.
  */
 function normalize_status($statusKey) {
+    if (empty($statusKey)) {
+        return 'fresh_lead'; // NULL or empty status → treat as Fresh Lead
+    }
     if (isset(LEGACY_STATUS_MAP[$statusKey])) {
         return LEGACY_STATUS_MAP[$statusKey];
     }
