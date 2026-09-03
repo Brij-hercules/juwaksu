@@ -14,23 +14,25 @@ $errorMsg   = '';
 
 // Handle POST: Update Status (and Add Note)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $newStatus = trim($_POST['new_status']);
-    $oldStatus = normalize_status(trim($_POST['old_status']));
-    $noteText  = trim($_POST['note_text']);
-    $schedDate = !empty($_POST['scheduled_datetime']) ? trim($_POST['scheduled_datetime']) : null;
+    $newStatus  = trim($_POST['new_status']);
+    $oldStatus  = normalize_status(trim($_POST['old_status']));
+    $noteText   = trim($_POST['note_text']);
+    $schedDate  = !empty($_POST['scheduled_datetime']) ? trim($_POST['scheduled_datetime']) : null;
+    $hasAlert   = isset($_POST['lead_alert']) && $_POST['lead_alert'] === '1';
+    $alertDate  = ($hasAlert && !empty($_POST['alert_datetime'])) ? trim($_POST['alert_datetime']) : null;
     
     // Only update if valid status
     if (isset(LEAD_STATUSES[$newStatus])) {
         try {
             $pdo->beginTransaction();
             
-            // 1. Update Lead
+            // 1. Update Lead status (and scheduled_datetime only if a schedule was provided)
             $stmt = $pdo->prepare("UPDATE inquiries SET status = ?, scheduled_datetime = ? WHERE id = ?");
-            $stmt->execute([$newStatus, $schedDate, $leadId]);
+            $stmt->execute([$newStatus, $schedDate ?: $alertDate, $leadId]);
             
-            // 2. Add to unified log
-            $stmtLog = $pdo->prepare("INSERT INTO lead_status_log (inquiry_id, changed_by, old_status, new_status, comment, scheduled_datetime) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmtLog->execute([$leadId, $userId, $oldStatus, $newStatus, $noteText, $schedDate]);
+            // 2. Add to unified log (with alert_datetime column)
+            $stmtLog = $pdo->prepare("INSERT INTO lead_status_log (inquiry_id, changed_by, old_status, new_status, comment, scheduled_datetime, alert_datetime) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmtLog->execute([$leadId, $userId, $oldStatus, $newStatus, $noteText, $schedDate, $alertDate]);
             
             $pdo->commit();
             $successMsg = "Lead updated successfully.";
@@ -45,14 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
 // Handle POST: Add Note only (no status change)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
-    $noteText = trim($_POST['note_text']);
+    $noteText      = trim($_POST['note_text']);
     $currentStatus = trim($_POST['current_status']);
+    $hasAlert      = isset($_POST['lead_alert']) && $_POST['lead_alert'] === '1';
+    $alertDate     = ($hasAlert && !empty($_POST['alert_datetime'])) ? trim($_POST['alert_datetime']) : null;
     if (!empty($noteText)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO lead_status_log (inquiry_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$leadId, $userId, $currentStatus, $currentStatus, $noteText]);
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare("INSERT INTO lead_status_log (inquiry_id, changed_by, old_status, new_status, comment, alert_datetime) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$leadId, $userId, $currentStatus, $currentStatus, $noteText, $alertDate]);
+            // Update lead's scheduled_datetime if alert is set
+            if ($alertDate) {
+                $pdo->prepare("UPDATE inquiries SET scheduled_datetime = ? WHERE id = ?")->execute([$alertDate, $leadId]);
+            }
+            $pdo->commit();
             $successMsg = "Note added successfully.";
         } catch (\PDOException $e) {
+            $pdo->rollBack();
             $errorMsg = "Error adding note: " . $e->getMessage();
         }
     }
@@ -194,6 +205,25 @@ try {
                     <textarea name="note_text" rows="2" required placeholder="Add notes for this status change..."
                         class="w-full p-3 bg-slate-50 border border-slate-200 text-sm rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
                 </div>
+
+                <!-- Lead Alert Checkbox -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                        <input type="checkbox" name="lead_alert" id="statusAlertCheckbox" value="1"
+                            onchange="toggleAlertBox('statusAlertDateBox', this)"
+                            class="w-4 h-4 rounded border-amber-400 text-amber-500 accent-amber-500 cursor-pointer">
+                        <span class="text-xs font-bold text-amber-700 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            Lead Alert — Set Reminder
+                        </span>
+                    </label>
+                    <div id="statusAlertDateBox" class="hidden mt-2.5">
+                        <label class="block text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Alert Date & Time</label>
+                        <input type="datetime-local" name="alert_datetime" id="statusAlertDatetime"
+                            class="w-full px-3 py-2 bg-white border border-amber-300 text-xs rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                        <p class="text-[10px] text-amber-600 mt-1">You will see this lead in Calendar on the selected date.</p>
+                    </div>
+                </div>
                 
                 <div class="flex gap-2 pt-2">
                     <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition shadow-sm">Save Update</button>
@@ -298,6 +328,26 @@ try {
                 <textarea name="note_text" rows="3" required
                     placeholder="Type a general note or conversation detail (does not change status)..."
                     class="w-full p-4 bg-slate-50 border border-slate-200 text-sm rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition resize-none mb-3"></textarea>
+
+                <!-- Lead Alert Checkbox -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                        <input type="checkbox" name="lead_alert" id="noteAlertCheckbox" value="1"
+                            onchange="toggleAlertBox('noteAlertDateBox', this)"
+                            class="w-4 h-4 rounded border-amber-400 text-amber-500 accent-amber-500 cursor-pointer">
+                        <span class="text-xs font-bold text-amber-700 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            Lead Alert — Set Reminder
+                        </span>
+                    </label>
+                    <div id="noteAlertDateBox" class="hidden mt-2.5">
+                        <label class="block text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Alert Date & Time</label>
+                        <input type="datetime-local" name="alert_datetime" id="noteAlertDatetime"
+                            class="w-full px-3 py-2 bg-white border border-amber-300 text-xs rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                        <p class="text-[10px] text-amber-600 mt-1">You will see this lead in Calendar on the selected date.</p>
+                    </div>
+                </div>
+
                 <div class="text-right">
                     <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-brand-600 text-white rounded-xl text-sm font-bold transition shadow-sm">
                         Add Note
@@ -351,6 +401,12 @@ try {
                                         Scheduled: <?= date('d M Y, h:i A', strtotime($note['scheduled_datetime'])) ?>
                                     </div>
                                 <?php endif; ?>
+                                <?php if (!empty($note['alert_datetime'])): ?>
+                                    <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                        🔔 Alert Set: <?= date('d M Y, h:i A', strtotime($note['alert_datetime'])) ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -379,6 +435,17 @@ function openStatusForm(nextKey, label, requiresSchedule) {
 }
 function closeStatusForm() {
     document.getElementById('statusFormContainer').classList.add('hidden');
+}
+function toggleAlertBox(boxId, checkbox) {
+    var box = document.getElementById(boxId);
+    if (checkbox.checked) {
+        box.classList.remove('hidden');
+    } else {
+        box.classList.add('hidden');
+        // Clear the datetime input inside
+        var dtInput = box.querySelector('input[type="datetime-local"]');
+        if (dtInput) dtInput.value = '';
+    }
 }
 </script>
 

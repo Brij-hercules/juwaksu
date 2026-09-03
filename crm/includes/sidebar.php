@@ -37,6 +37,27 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 Leads
             </a>
 
+            <!-- Calendar (Sales Employee) -->
+            <a href="calendar.php"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-amber-600 transition text-sm font-semibold <?php echo $activePage == 'calendar.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Calendar
+                <?php
+                // Show today's alert count badge
+                try {
+                    global $pdo;
+                    $calBadge = $pdo->prepare("SELECT COUNT(*) FROM lead_status_log WHERE DATE(alert_datetime) = CURDATE() AND changed_by = ?");
+                    $calBadge->execute([$currentUser['id']]);
+                    $calCnt = (int)$calBadge->fetchColumn();
+                    if ($calCnt > 0): ?>
+                        <span class="ml-auto bg-amber-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.5 leading-none"><?php echo $calCnt; ?></span>
+                    <?php endif;
+                } catch(\Exception $e) {}
+                ?>
+            </a>
+
         <?php else: ?>
             <!-- ADMIN MENU -->
             <!-- Dashboard Link -->
@@ -141,7 +162,6 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 </a>
             <?php endif; ?>
 
-            <!-- Sales Performance (Admin/Manager) -->
             <?php if (in_array($currentUser['role_name'], ['Admin', 'Super Admin', 'Meta Manager'])): ?>
                 <a href="sales-performance.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition text-sm font-semibold <?php echo ($activePage == 'sales-performance.php' || $activePage == 'sales-employee-details.php') ? 'sidebar-active' : 'text-slate-600'; ?>">
@@ -151,6 +171,25 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         </path>
                     </svg>
                     Sales Performance
+                </a>
+
+                <!-- Calendar (Admin) -->
+                <a href="calendar.php"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 hover:text-amber-600 transition text-sm font-semibold <?php echo $activePage == 'calendar.php' ? 'sidebar-active' : 'text-slate-600'; ?>">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Calendar
+                    <?php
+                    try {
+                        global $pdo;
+                        $calBadge2 = $pdo->query("SELECT COUNT(*) FROM lead_status_log WHERE DATE(alert_datetime) = CURDATE()");
+                        $calCnt2 = (int)$calBadge2->fetchColumn();
+                        if ($calCnt2 > 0): ?>
+                            <span class="ml-auto bg-amber-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.5 leading-none"><?php echo $calCnt2; ?></span>
+                        <?php endif;
+                    } catch(\Exception $e) {}
+                    ?>
                 </a>
             <?php endif; ?>
 
