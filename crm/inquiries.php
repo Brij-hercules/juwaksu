@@ -3,6 +3,7 @@
 $pageTitle = "Inquiries & Leads Pipeline";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/lead_status_helper.php';
 
 // Verify view permission
 require_permission('inquiries', 'view');
@@ -10,24 +11,9 @@ require_permission('inquiries', 'view');
 $successMsg = '';
 $errorMsg = '';
 
-// 1. Process Status / Assignment Update
+// 1. Process Assignment Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $inquiryId = intval($_POST['inquiry_id']);
-    
-    if (isset($_POST['update_status'])) {
-        $newStatus = trim($_POST['status']);
-        if (!has_permission('inquiries', 'edit')) {
-            $errorMsg = "You do not have permission to modify leads.";
-        } else {
-            try {
-                $stmt = $pdo->prepare("UPDATE inquiries SET status = ? WHERE id = ?");
-                $stmt->execute([$newStatus, $inquiryId]);
-                $successMsg = "Inquiry status updated to " . strtoupper($newStatus) . ".";
-            } catch (\PDOException $e) {
-                $errorMsg = "Error updating lead status: " . $e->getMessage();
-            }
-        }
-    }
     
     if (isset($_POST['update_assignment'])) {
         $assignedTo = !empty($_POST['assigned_to']) ? intval($_POST['assigned_to']) : null;
@@ -143,11 +129,9 @@ try {
             <label for="status" class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Lead Status</label>
             <select name="status" id="status" class="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs">
                 <option value="">All Pipeline Statuses</option>
-                <option value="new" <?php echo $filterStatus === 'new' ? 'selected' : ''; ?>>New Leads</option>
-                <option value="contacting" <?php echo $filterStatus === 'contacting' ? 'selected' : ''; ?>>Contacting</option>
-                <option value="qualified" <?php echo $filterStatus === 'qualified' ? 'selected' : ''; ?>>Qualified / Shortlisted</option>
-                <option value="lost" <?php echo $filterStatus === 'lost' ? 'selected' : ''; ?>>Lost Deal</option>
-                <option value="closed" <?php echo $filterStatus === 'closed' ? 'selected' : ''; ?>>Closed Deal</option>
+                <?php foreach (LEAD_STATUSES as $k => $v): ?>
+                    <option value="<?= $k ?>" <?= $filterStatus === $k ? 'selected' : '' ?>><?= $v['label'] ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
         
@@ -229,33 +213,11 @@ try {
                             
                             <!-- Status Badges -->
                             <td class="py-3">
-                                <?php
-                                $col = 'bg-slate-100 text-slate-600';
-                                if ($inq['status'] === 'new') $col = 'bg-blue-100 text-blue-700 border border-blue-200';
-                                elseif ($inq['status'] === 'contacting') $col = 'bg-amber-100 text-amber-700 border border-amber-200';
-                                elseif ($inq['status'] === 'qualified') $col = 'bg-emerald-100 text-emerald-700 border border-emerald-250';
-                                elseif ($inq['status'] === 'lost') $col = 'bg-rose-100 text-rose-700 border border-rose-200';
-                                elseif ($inq['status'] === 'closed') $col = 'bg-indigo-150 text-indigo-700 border border-indigo-250';
-                                ?>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider <?php echo $col; ?>">
-                                    <?php echo htmlspecialchars($inq['status']); ?>
-                                </span>
+                                <?= get_status_badge($inq['status']) ?>
                             </td>
                             
                             <!-- Update Status actions -->
                             <td class="py-3 text-end flex flex-col gap-1 items-end">
-                                <form action="inquiries.php?<?php echo $_SERVER['QUERY_STRING'] ?? ''; ?>" method="POST" class="inline-flex gap-1">
-                                    <input type="hidden" name="inquiry_id" value="<?php echo $inq['id']; ?>">
-                                    <input type="hidden" name="update_status" value="1">
-                                    
-                                    <select name="status" onchange="this.form.submit()" class="px-2 py-1 bg-slate-50 border border-slate-200 text-xs rounded font-medium focus:outline-none">
-                                        <option value="new" <?php echo $inq['status'] === 'new' ? 'selected' : ''; ?>>New</option>
-                                        <option value="contacting" <?php echo $inq['status'] === 'contacting' ? 'selected' : ''; ?>>Contacting</option>
-                                        <option value="qualified" <?php echo $inq['status'] === 'qualified' ? 'selected' : ''; ?>>Qualified</option>
-                                        <option value="lost" <?php echo $inq['status'] === 'lost' ? 'selected' : ''; ?>>Lost</option>
-                                        <option value="closed" <?php echo $inq['status'] === 'closed' ? 'selected' : ''; ?>>Closed</option>
-                                    </select>
-                                </form>
                                 <a href="lead-details.php?id=<?= $inq['id'] ?>" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-500 hover:text-white text-brand-600 rounded text-[10px] font-bold transition">View Details →</a>
                             </td>
                         </tr>

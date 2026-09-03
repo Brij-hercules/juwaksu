@@ -3,6 +3,7 @@
 $pageTitle = "CRM Overview";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/lead_status_helper.php';
 
 $isSalesEmployee = ($currentUser['role_name'] === 'Sales Employee');
 $userId = $currentUser['id'];
@@ -17,17 +18,30 @@ try {
         $statTotal->execute([$userId]);
         $statTotalLeads = $statTotal->fetchColumn();
 
-        $statConfirm = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status = 'closed'");
+        $statConfirm = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status = 'booking_done'");
         $statConfirm->execute([$userId]);
         $statConfirmLeads = $statConfirm->fetchColumn();
 
-        $statLoss = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status = 'lost'");
+        $statLoss = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status IN ('not_interested', 'sale_lost')");
         $statLoss->execute([$userId]);
         $statLossLeads = $statLoss->fetchColumn();
 
-        $statWait = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status IN ('new','contacting','qualified')");
+        $statWait = $pdo->prepare("SELECT COUNT(*) FROM inquiries WHERE assigned_to = ? AND status NOT IN ('not_interested', 'booking_done', 'sale_lost')");
         $statWait->execute([$userId]);
         $statWaitLeads = $statWait->fetchColumn();
+
+        // Fetch Due Reminders
+        $stmtReminders = $pdo->prepare("
+            SELECT id, name, scheduled_datetime, status 
+            FROM inquiries 
+            WHERE assigned_to = ? 
+              AND scheduled_datetime IS NOT NULL 
+              AND scheduled_datetime <= NOW() 
+              AND status NOT IN ('not_interested', 'booking_done', 'sale_lost')
+            ORDER BY scheduled_datetime ASC
+        ");
+        $stmtReminders->execute([$userId]);
+        $dueReminders = $stmtReminders->fetchAll();
 
         // Recent assigned leads
         $stmtRecent = $pdo->prepare("
@@ -78,6 +92,23 @@ try {
         </p>
     </div>
 </div>
+
+<?php if ($isSalesEmployee && !empty($dueReminders)): ?>
+    <div class="alert bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl p-4 mb-8 flex items-center justify-between shadow-sm" role="alert">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <strong class="font-bold text-sm">Action Required!</strong>
+                <p class="text-xs mt-0.5">You have <?= count($dueReminders) ?> scheduled follow-up(s) that are currently due or overdue.</p>
+            </div>
+        </div>
+        <button type="button" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-sm" data-bs-toggle="modal" data-bs-target="#remindersModal">
+            View Due Tasks
+        </button>
+    </div>
+<?php endif; ?>
 
 <!-- Stats Counter Grid -->
 <div class="row g-4 mb-8">
@@ -241,17 +272,7 @@ try {
                                         <?php endif; ?>
                                     </td>
                                     <td class="py-3">
-                                        <?php
-                                        $color = 'bg-slate-100 text-slate-600';
-                                        if ($inq['status'] === 'new') $color = 'bg-blue-100 text-blue-700';
-                                        elseif ($inq['status'] === 'qualified') $color = 'bg-emerald-100 text-emerald-700';
-                                        elseif ($inq['status'] === 'contacting') $color = 'bg-amber-100 text-amber-700';
-                                        elseif ($inq['status'] === 'closed') $color = 'bg-indigo-100 text-indigo-700';
-                                        elseif ($inq['status'] === 'lost') $color = 'bg-rose-100 text-rose-700';
-                                        ?>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider <?php echo $color; ?>">
-                                            <?php echo htmlspecialchars($inq['status']); ?>
-                                        </span>
+                                        <?= get_status_badge($inq['status']) ?>
                                     </td>
                                     <td class="py-3 text-end">
                                         <a href="lead-details.php?id=<?php echo $inq['id']; ?>" class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-brand-500 hover:text-white text-slate-600 rounded text-xs font-bold transition">
@@ -267,5 +288,51 @@ try {
         </div>
     </div>
 </div>
+
+<?php if ($isSalesEmployee && !empty($dueReminders)): ?>
+<!-- Reminders Modal -->
+<div class="modal fade" id="remindersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-2xl border-0 shadow-xl overflow-hidden">
+            <div class="modal-header bg-rose-600 text-white border-0 py-4 px-6">
+                <h5 class="modal-title font-black text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    Action Required: Due Scheduled Tasks
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 bg-slate-50">
+                <div class="divide-y divide-slate-100">
+                    <?php foreach ($dueReminders as $rem): ?>
+                        <div class="p-4 flex items-center justify-between hover:bg-white transition">
+                            <div>
+                                <h6 class="font-extrabold text-sm text-slate-800 mb-1"><?= htmlspecialchars($rem['name']) ?></h6>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-rose-600 font-bold">Due: <?= date('d M Y, h:i A', strtotime($rem['scheduled_datetime'])) ?></span>
+                                    <?= get_status_badge($rem['status']) ?>
+                                </div>
+                            </div>
+                            <a href="lead-details.php?id=<?= $rem['id'] ?>" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition whitespace-nowrap">
+                                Open Lead
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-open reminders modal on login/page load if tasks are due
+    document.addEventListener("DOMContentLoaded", function() {
+        if (!sessionStorage.getItem('remindersShown')) {
+            var myModal = new bootstrap.Modal(document.getElementById('remindersModal'));
+            myModal.show();
+            sessionStorage.setItem('remindersShown', 'true');
+        }
+    });
+</script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

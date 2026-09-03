@@ -3,6 +3,7 @@
 $pageTitle = "Meta Ads Marketing Dashboard";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/lead_status_helper.php';
 
 // Verify view permission
 require_permission('meta_ads', 'view');
@@ -237,12 +238,9 @@ $mockCampaigns = [
                 <div class="col-md-3">
                     <select name="status" class="w-full px-2 py-1.5 rounded bg-white border border-slate-200 text-xs">
                         <option value="">All Statuses</option>
-                        <option value="new" <?php echo $filterStatus === 'new' ? 'selected' : ''; ?>>New</option>
-                        <option value="contacting" <?php echo $filterStatus === 'contacting' ? 'selected' : ''; ?>>
-                            Contacting</option>
-                        <option value="qualified" <?php echo $filterStatus === 'qualified' ? 'selected' : ''; ?>>Qualified
-                        </option>
-                        <option value="lost" <?php echo $filterStatus === 'lost' ? 'selected' : ''; ?>>Lost</option>
+                        <?php foreach (LEAD_STATUSES as $k => $v): ?>
+                            <option value="<?= $k ?>" <?= $filterStatus === $k ? 'selected' : '' ?>><?= $v['label'] ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -299,17 +297,7 @@ $mockCampaigns = [
                                     <td class="py-3 text-xs text-slate-500">
                                         <?php echo date('d-M-y H:i', strtotime($lead['created_at'])); ?></td>
                                     <td class="py-3">
-                                        <?php
-                                        $col = 'bg-slate-100 text-slate-600';
-                                        if ($lead['status'] === 'new')
-                                            $col = 'bg-blue-100 text-blue-700';
-                                        elseif ($lead['status'] === 'qualified')
-                                            $col = 'bg-emerald-100 text-emerald-700';
-                                        ?>
-                                        <span
-                                            class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider <?php echo $col; ?>">
-                                            <?php echo htmlspecialchars($lead['status']); ?>
-                                        </span>
+                                        <?= get_status_badge($lead['status']) ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

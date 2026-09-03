@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO inquiries (property_id, name, email, phone, message, status, source, campaign_name) 
-                VALUES (?, ?, ?, ?, ?, 'new', ?, ?)
+                VALUES (?, ?, ?, ?, ?, 'fresh_lead', ?, ?)
             ");
             $stmt->execute([$property_id, $name, $email, $phone, $message, $source, $campaign_name]);
             

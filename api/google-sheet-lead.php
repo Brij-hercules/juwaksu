@@ -237,7 +237,7 @@ try {
                 form_id, form_name, is_organic, platform, are_you_looking_for,
                 budget, purchase_time, have_you_invested_in_property_before, lead_status, created_at
             ) VALUES (
-                NULL, ?, ?, ?, ?, 'new', 'meta_ads', ?,
+                NULL, ?, ?, ?, ?, 'fresh_lead', 'meta_ads', ?,
                 ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?
